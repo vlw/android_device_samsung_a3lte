@@ -83,10 +83,6 @@ TARGET_USERIMAGES_USE_F2FS := true
 BOARD_SEPOLICY_DIRS += \
     device/yu/jalebi/sepolicy
 
-BOARD_SEPOLICY_UNION += \
-    system_server.te \
-    wcnss_service.te
-
 # Wifi
 TARGET_PROVIDES_WCNSS_QMI := true
 
