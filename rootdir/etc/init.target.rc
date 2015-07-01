@@ -30,7 +30,6 @@
 on boot
 
 
-    # yulong add tw 20140822
     # change file owner for factory test
     chown system system /sys/devices/virtual/touchscreen/touchscreen_dev/firmware_version
     chown system system /sys/devices/virtual/touchscreen/touchscreen_dev/firmware_update

@@ -1,8 +1,11 @@
 # Audio
-ro.qc.sdk.audio.fluencetype=none
+ro.qc.sdk.audio.fluencetype=fluence
 persist.audio.fluence.voicecall=true
 persist.audio.fluence.voicerec=false
 persist.audio.fluence.speaker=true
+
+# set roaming indicator to always show
+ro.config.always_show_roaming=true
 
 # Camera
 persist.camera.hal.debug.mask=268435456
