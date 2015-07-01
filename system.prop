@@ -4,9 +4,6 @@ persist.audio.fluence.voicecall=true
 persist.audio.fluence.voicerec=false
 persist.audio.fluence.speaker=true
 
-# set roaming indicator to always show
-ro.config.always_show_roaming=true
-
 # Camera
 persist.camera.hal.debug.mask=268435456
 
@@ -17,7 +14,7 @@ ro.sf.lcd_density=320
 persist.radio.multisim.config=dsds
 ril.ecclist=000,08,100,101,102,110,112,118,119,120,122,911,999
 ril.ecclist1=000,08,100,101,102,110,112,118,119,120,122,911,999
-
+ro.config.always_show_roaming=true
 ro.telephony.default_network=9,1
 
 #
