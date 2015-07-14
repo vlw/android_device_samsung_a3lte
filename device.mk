@@ -82,8 +82,7 @@ PRODUCT_COPY_FILES += \
 
 # Ramdisk
 PRODUCT_PACKAGES += \
-    init.target.rc \
-    init.qcom.usb.rc
+    init.target.rc
 
 # Recovery
 PRODUCT_EXTRA_RECOVERY_KEYS += \

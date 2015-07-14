@@ -20,6 +20,16 @@ ril.ecclist1=000,08,100,101,102,110,112,118,119,120,122,911,999
 ro.config.always_show_roaming=true
 ro.telephony.default_network=9,1
 
+# USB ID
+ro.usb.id.charge=3009
+ro.usb.id.mtp=3003
+ro.usb.id.mtp_adb=3004
+ro.usb.id.ptp=3005
+ro.usb.id.ptp_adb=3006
+ro.usb.id.ums=3007
+ro.usb.id.ums_adb=3008
+ro.usb.vid=2a96
+
 #
 #snapdragon value add features
 #
