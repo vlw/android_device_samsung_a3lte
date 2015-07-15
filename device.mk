@@ -89,5 +89,9 @@ PRODUCT_PACKAGES += \
 PRODUCT_EXTRA_RECOVERY_KEYS += \
     $(LOCAL_PATH)/jalebi-releasekey
 
+# Wifi
+PRODUCT_PACKAGES += \
+    libwcnss_qmi
+
 # Inherit the rest from msm8916-common
 $(call inherit-product, device/cyanogen/msm8916-common/msm8916.mk)

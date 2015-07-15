@@ -61,5 +61,15 @@ BOARD_USERDATAIMAGE_PARTITION_SIZE := 4613734400
 # Properties
 TARGET_SYSTEM_PROP += $(DEVICE_PATH)/system.prop
 
+# SELinux
+BOARD_SEPOLICY_DIRS += \
+    device/yu/jalebi/sepolicy
+
+BOARD_SEPOLICY_UNION += \
+    wcnss_service.te
+
+# Wifi
+TARGET_PROVIDES_WCNSS_QMI := true
+
 # inherit from the proprietary version
 -include vendor/yu/jalebi/BoardConfigVendor.mk
