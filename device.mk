@@ -88,6 +88,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_EXTRA_RECOVERY_KEYS += \
     $(LOCAL_PATH)/jalebi-releasekey
 
+# Sensor HAL
+PRODUCT_PACKAGES += \
+    sensors.msm8916
+
 # Wifi
 PRODUCT_PACKAGES += \
     libwcnss_qmi
