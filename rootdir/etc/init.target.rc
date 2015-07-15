@@ -25,37 +25,17 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
-
 on boot
-
-
-    # change file owner for factory test
-    chown system system /sys/devices/virtual/touchscreen/touchscreen_dev/firmware_version
-    chown system system /sys/devices/virtual/touchscreen/touchscreen_dev/firmware_update
-    chown system system /sys/devices/virtual/touchscreen/touchscreen_dev/calibrate
-
-
 
     # Torch
     chown system camera /sys/class/leds/torch-light/brightness
     chmod 0660 /sys/class/leds/torch-light/brightness
 
-    # Touchscreen
-    chown root system /sys/devices/virtual/touchscreen/touchscreen_dev/gesture_ctrl
-    chmod 0660 /sys/devices/virtual/touchscreen/touchscreen_dev/gesture_ctrl
-
     # charger
-    chown system system /sys/bus/i2c/drivers/lc709203/batt_capacity
-    chmod 0660 /sys/bus/i2c/drivers/lc709203/batt_capacity
     chown root system /sys/class/power_supply/bms/current_now
     chown root system /sys/class/power_supply/bms/voltage_ocv
     chmod 0664 /sys/class/power_supply/bms/current_now
     chmod 0664 /sys/class/power_supply/bms/voltage_ocv
-
-    chown root system /sys/devices/soc.0/78b9000.i2c/i2c-5/5-005d/keypad_enable
-    chmod 0660 /sys/devices/soc.0/78b9000.i2c/i2c-5/5-005d/keypad_enable
-
 
     # leds
     chown system system /sys/class/leds/red/brightness
@@ -64,15 +44,15 @@ on boot
     chmod 0664 /sys/class/leds/green/brightness
     chown system system /sys/class/leds/blue/brightness
     chmod 0664 /sys/class/leds/blue/brightness
-    chown system system /sys/class/leds/red/red_timer
-    chmod 0664 /sys/class/leds/red/red_timer
-    chown system system /sys/class/leds/green/green_timer
-    chmod 0664 /sys/class/leds/green/green_timer
-    chown system system /sys/class/leds/red/red_tflash
-    chmod 0664 /sys/class/leds/red/red_tflash
-    chown system system /sys/class/leds/green/green_tflash
-    chmod 0664 /sys/class/leds/green/green_tflash
 
+on charger
+    wait /dev/block/bootdevice/by-name/system
+    mount ext4 /dev/block/bootdevice/by-name/system /system ro barrier=1
+    chown root system /sys/class/power_supply/bms/current_now
+    chown root system /sys/class/power_supply/bms/voltage_ocv
+    chmod 0664 /sys/class/power_supply/bms/current_now
+    chmod 0664 /sys/class/power_supply/bms/voltage_ocv
+    start vm_bms
 
 on property:service.bootanim.exit=1
     # KSM options
@@ -80,23 +60,6 @@ on property:service.bootanim.exit=1
     write /sys/kernel/mm/ksm/sleep_millisecs 100
     write /sys/kernel/mm/ksm/deferred_timer 1
     write /sys/kernel/mm/ksm/run 1
-
-
-
-on property:persist.radio.multisim.config=dsda
-    start ril-daemon1
-
-on property:persist.radio.multisim.config=dsds
-    start ril-daemon1
-
-
-service ril-daemon1 /system/bin/rild -c 2
-    class main
-    socket rild2 stream 660 root radio
-    socket rild-debug2 stream 660 radio system
-    user root
-    disabled
-    group radio cache inet misc audio sdcard_r sdcard_rw diag qcom_diag log
 
 service sdcard /system/bin/sdcard -u 1023 -g 1023 -l /data/media /mnt/shell/emulated
     class late_start
@@ -109,63 +72,7 @@ service fuse_usbdisk /system/bin/sdcard -u 1023 -g 1023 -w 1023 -d /mnt/media_rw
     class late_start
     disabled
 
-
 service vm_bms /system/bin/vm_bms
     class core
     user root
     group root
-
-
-
-on charger
-   wait /dev/block/bootdevice/by-name/system
-   mount ext4 /dev/block/bootdevice/by-name/system /system ro barrier=1
-   chown root system /sys/class/power_supply/bms/current_now
-   chown root system /sys/class/power_supply/bms/voltage_ocv
-   chmod 0664 /sys/class/power_supply/bms/current_now
-   chmod 0664 /sys/class/power_supply/bms/voltage_ocv
-   write /sys/module/lpm_levels/system/cpu0/wfi/idle_enabled Y
-   write /sys/module/lpm_levels/system/cpu1/wfi/idle_enabled Y
-   write /sys/module/lpm_levels/system/cpu2/wfi/idle_enabled Y
-   write /sys/module/lpm_levels/system/cpu3/wfi/idle_enabled Y
-   write /sys/module/lpm_levels/system/cpu0/standalone_pc/idle_enabled Y
-   write /sys/module/lpm_levels/system/cpu1/standalone_pc/idle_enabled Y
-   write /sys/module/lpm_levels/system/cpu2/standalone_pc/idle_enabled Y
-   write /sys/module/lpm_levels/system/cpu3/standalone_pc/idle_enabled Y
-   write /sys/module/lpm_levels/system/cpu0/pc/idle_enabled Y
-   write /sys/module/lpm_levels/system/cpu1/pc/idle_enabled Y
-   write /sys/module/lpm_levels/system/cpu2/pc/idle_enabled Y
-   write /sys/module/lpm_levels/system/cpu3/pc/idle_enabled Y
-   write /sys/module/lpm_levels/system/cpu0/pc/suspend_enabled N
-   write /sys/module/lpm_levels/system/cpu1/pc/suspend_enabled Y
-   write /sys/module/lpm_levels/system/cpu2/pc/suspend_enabled Y
-   write /sys/module/lpm_levels/system/cpu3/pc/suspend_enabled Y
-   write /sys/module/lpm_levels/system/l2-pc/idle_enabled Y
-   write /sys/module/lpm_levels/system/l2-cache-active/idle_enabled Y
-   write /sys/module/lpm_levels/system/l2-pc/suspend_enabled Y
-   write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ondemand
-   start vm_bms
-
-service ppd /system/bin/mm-pp-daemon
-    class late_start
-    disabled
-    user system
-    socket pps stream 0660 system system
-    group system graphics
-
-on property:init.svc.surfaceflinger=stopped
-    stop ppd
-
-on property:init.svc.surfaceflinger=running
-    start ppd
-
-service wcnss-service /system/bin/wcnss_service
-    class main
-    user system
-    group system wifi radio
-
-service setup_fs /system/bin/setup_fs /dev/block/platform/7824900.sdhci/by-name/userdata
-    class core
-    user root
-    group root
-    oneshot
