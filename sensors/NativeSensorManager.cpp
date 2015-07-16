@@ -433,11 +433,6 @@ int NativeSensorManager::getDataInfo() {
 				list->driver = new AccelSensor(list);
 				sensor_acc = *(list->sensor);
 				break;
-			case SENSOR_TYPE_MAGNETIC_FIELD:
-				has_compass = 1;
-				list->driver = new CompassSensor(list);
-				sensor_mag = *(list->sensor);
-				break;
 			case SENSOR_TYPE_PROXIMITY:
 				has_proximity = 1;
 #if defined(SENSORS_DEVICE_API_VERSION_1_3)
@@ -455,14 +450,6 @@ int NativeSensorManager::getDataInfo() {
 #endif
 				list->driver = new LightSensor(list);
 				sensor_light = *(list->sensor);
-				break;
-			case SENSOR_TYPE_GYROSCOPE:
-				has_gyro = 1;
-				list->driver = new GyroSensor(list);
-				sensor_gyro = *(list->sensor);
-				break;
-			case SENSOR_TYPE_PRESSURE:
-				list->driver = new PressureSensor(list);
 				break;
 			default:
 				list->driver = NULL;
