@@ -4,9 +4,6 @@ persist.audio.fluence.voicecall=true
 persist.audio.fluence.voicerec=false
 persist.audio.fluence.speaker=true
 
-# Camera
-persist.camera.hal.debug.mask=268435456
-
 # Display
 ro.sf.lcd_density=320
 
