@@ -1,23 +1,8 @@
-# Camera Actuator
-vendor/lib/libactuator_wv517s_f8865bs.so
-vendor/lib/libactuator_wv517s_f8865bs_camcorder.so
-vendor/lib/libactuator_wv517s_f8865bs_camera.so
-
-# Camera Chromatix
-vendor/lib/libchromatix_gc2355_blx_ffln_78_common.so
-vendor/lib/libchromatix_gc2355_blx_ffln_78_default_video.so
-vendor/lib/libchromatix_gc2355_blx_ffln_78_preview.so
-vendor/lib/libchromatix_ov8865_qtech_baly_6c_common.so
-vendor/lib/libchromatix_ov8865_qtech_baly_6c_default_video.so
-vendor/lib/libchromatix_ov8865_qtech_baly_6c_hfr_120fps.so
-vendor/lib/libchromatix_ov8865_qtech_baly_6c_hfr_60fps.so
-vendor/lib/libchromatix_ov8865_qtech_baly_6c_hfr_90fps.so
-vendor/lib/libchromatix_ov8865_qtech_baly_6c_liveshot.so
-vendor/lib/libchromatix_ov8865_qtech_baly_6c_preview.so
-vendor/lib/libchromatix_ov8865_qtech_baly_6c_snapshot.so
-vendor/lib/libchromatix_ov8865_qtech_baly_6c_video_hd.so
-vendor/lib/libchromatix_ov8865_qtech_baly_6c_zsl.so
-
-# Camera Sensor
-vendor/lib/libmmcamera_gc2355_blx_ffln_78.so
-vendor/lib/libmmcamera_ov8865_qtech_baly_6c.so
+# Venus (media) firmware
+etc/firmware/venus.b00
+etc/firmware/venus.b01
+etc/firmware/venus.b02
+etc/firmware/venus.b03
+etc/firmware/venus.b04
+etc/firmware/venus.mbn
+etc/firmware/venus.mdt
