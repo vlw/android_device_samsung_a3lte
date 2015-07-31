@@ -45,6 +45,7 @@ enum input_device_name {
     LEGACY_PSENSOR,
     CM36283_PS,
     PS_CROSSTALK,
+    CALIBRATE,
     SUPPORTED_PSENSOR_COUNT,
 };
 
@@ -53,6 +54,7 @@ static const char *data_device_name[SUPPORTED_PSENSOR_COUNT] = {
     [LEGACY_PSENSOR] = "proximity",
         [CM36283_PS] = "cm36283-ps",
       [PS_CROSSTALK] = "proximity",
+         [CALIBRATE] = "ap3426-proximity",
 };
 
 static const char *input_sysfs_path_list[SUPPORTED_PSENSOR_COUNT] = {
@@ -61,6 +63,7 @@ static const char *input_sysfs_path_list[SUPPORTED_PSENSOR_COUNT] = {
     [LEGACY_PSENSOR] = "/sys/class/input/%s/device/",
         [CM36283_PS] = "/sys/class/input/%s/device/",
       [PS_CROSSTALK] = "/sys/class/input/%s/device/",
+      [CALIBRATE] = "/sys/class/sensors/%s",
 };
 
 static const char *input_sysfs_enable_list[SUPPORTED_PSENSOR_COUNT] = {
@@ -68,6 +71,7 @@ static const char *input_sysfs_enable_list[SUPPORTED_PSENSOR_COUNT] = {
     [LEGACY_PSENSOR] = "enable",
         [CM36283_PS] = "enable",
       [PS_CROSSTALK] = "ps_crosstalk",
+         [CALIBRATE] = "calibrate",
 };
 
 int read_persist_prox_avg(void)
@@ -141,7 +145,7 @@ ProximitySensor::ProximitySensor(struct SensorContext *context)
         res(context->sensor->resolution)
 {
 	//modified by yanfei for calibration fuction 20140728 begin
-	int fd;
+	int fd = -1;
 	int ret;
 	mPendingEvent.version = sizeof(sensors_event_t);
 	mPendingEvent.sensor = context->sensor->handle;
@@ -154,19 +158,48 @@ ProximitySensor::ProximitySensor(struct SensorContext *context)
 	 ret = read_persist_prox_avg();
 	 if(ret < 0)
 	    {
-		 ALOGE("read prox_avg error\n");
+		 ALOGE("read prox_avg error (%s)\n", strerror(errno));
+		 goto calibrate_err;
 	     }
 	//delete by yanfei for sensor crash 20150227
 	//enable(0,1);
-	strlcpy(&input_sysfs_path[input_sysfs_path_len], input_sysfs_path_list[3],
+	strlcpy(&input_sysfs_path[input_sysfs_path_len], input_sysfs_enable_list[CALIBRATE],
                             sizeof(input_sysfs_path) - input_sysfs_path_len);
 	fd = open(input_sysfs_path, O_RDWR);
-      if (fd >= 0) {
-        char buf[80];
-  	 sprintf(buf, "%d", cross);
-  	 write(fd, buf, strlen(buf)+1);
+        if (fd < 0) {
+                ALOGE("ProximitySensor open %s error (%s)\n",
+                        input_sysfs_path, strerror(errno));
+                return;
+        }
+        char buf[15]; // max unsigned 32 bit is 10 digit long
+        uint32_t data;
+        //Set bias high 16 bits
+        data = (cross & 0xffff0000) | CMD_W_BIAS | CMD_W_H_L;
+        sprintf(buf, "%u", data);
+        ret = write(fd, buf, strlen(buf)+1);
+        if (ret < 0) {
+                ALOGE("ProximitySensor CMD_W_BIAS calibrate high 16 bits error (%s)\n",
+                        strerror(errno));
+                goto calibrate_err;
+        }
+        // Set bias low 16 bits
+        data = ((cross & 0x0000ffff) << 16) | CMD_W_BIAS;
+        sprintf(buf, "%u", data);
+        ret = write(fd, buf, strlen(buf)+1);
+        if (ret < 0) {
+                ALOGE("ProximitySensor CMD_W_BIAS calibrate low 16 bits error (%s)\n",
+                        strerror(errno));
+                goto calibrate_err;
+        }
+        data = CMD_COMPLETE;
+        sprintf(buf, "%u", data);
+        ret = write(fd, buf, strlen(buf)+1);
+        if (ret < 0) {
+                ALOGE("ProximitySensor CMD_COMPLETE of CMD_W_BIAS error (%s)\n",
+                        strerror(errno));
+        }
+calibrate_err:
         close(fd);
-      }
 }
 
 ProximitySensor::ProximitySensor(char *name)
