@@ -18,13 +18,13 @@ ro.config.always_show_roaming=true
 ro.telephony.default_network=9,1
 
 # USB ID
-ro.usb.id.charge=3009
-ro.usb.id.mtp=3003
-ro.usb.id.mtp_adb=3004
-ro.usb.id.ptp=3005
-ro.usb.id.ptp_adb=3006
-ro.usb.id.ums=3007
-ro.usb.id.ums_adb=3008
+ro.usb.id.charge=3011
+ro.usb.id.mtp=300B
+ro.usb.id.mtp_adb=300C
+ro.usb.id.ptp=300D
+ro.usb.id.ptp_adb=300E
+ro.usb.id.ums=300F
+ro.usb.id.ums_adb=3010
 ro.usb.vid=2a96
 
 #
