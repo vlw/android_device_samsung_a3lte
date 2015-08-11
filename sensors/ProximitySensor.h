@@ -55,6 +55,7 @@ public:
     virtual int calibrate(int32_t handle, struct cal_cmd_t *para,
                                  struct cal_result_t *cal_result);
     virtual int initCalibrate(int32_t handle, struct cal_result_t *cal_result);
+    virtual int setCalibrateValue(int fd, uint32_t value);
 };
 
 /*****************************************************************************/

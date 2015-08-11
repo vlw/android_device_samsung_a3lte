@@ -35,6 +35,8 @@
 
 #define PROXIMITY_THRESHOLD                    5.0f
 
+#define CROSSTALK_DEFAULT       100
+
 #define ARRAY	3
 //modified by yanfei for calibration fuction 20140728 begin
 static int cross;
@@ -152,53 +154,41 @@ ProximitySensor::ProximitySensor(struct SensorContext *context)
 	mPendingEvent.type = SENSOR_TYPE_PROXIMITY;
 	memset(mPendingEvent.data, 0, sizeof(mPendingEvent.data));
 
+        struct cal_cmd_t para;
+        struct cal_result_t cal_result;
+
         data_fd = context->data_fd;
         strlcpy(input_sysfs_path, context->enable_path, sizeof(input_sysfs_path));
         input_sysfs_path_len = strlen(input_sysfs_path);
-	 ret = read_persist_prox_avg();
-	 if(ret < 0)
-	    {
-		 ALOGE("read prox_avg error (%s)\n", strerror(errno));
-		 goto calibrate_err;
-	     }
-	//delete by yanfei for sensor crash 20150227
-	//enable(0,1);
-	strlcpy(&input_sysfs_path[input_sysfs_path_len], input_sysfs_enable_list[CALIBRATE],
-                            sizeof(input_sysfs_path) - input_sysfs_path_len);
-	fd = open(input_sysfs_path, O_RDWR);
+        strlcpy(&input_sysfs_path[input_sysfs_path_len], input_sysfs_enable_list[CALIBRATE],
+                        sizeof(input_sysfs_path) - input_sysfs_path_len);
+        fd = open(input_sysfs_path, O_RDWR);
         if (fd < 0) {
-                ALOGE("ProximitySensor open %s error (%s)\n",
-                        input_sysfs_path, strerror(errno));
+                ALOGE("ProximitySensor open %s error (%s)\n", input_sysfs_path, strerror(errno));
                 return;
         }
-        char buf[15]; // max unsigned 32 bit is 10 digit long
-        uint32_t data;
-        //Set bias high 16 bits
-        data = (cross & 0xffff0000) | CMD_W_BIAS | CMD_W_H_L;
-        sprintf(buf, "%u", data);
-        ret = write(fd, buf, strlen(buf)+1);
+
+        // retreive calibrated value from persist
+        ret = read_persist_prox_avg();
         if (ret < 0) {
-                ALOGE("ProximitySensor CMD_W_BIAS calibrate high 16 bits error (%s)\n",
-                        strerror(errno));
-                goto calibrate_err;
+                ALOGI("ProximitySensor initiate calibrate instead\n");
+                para.axis = AXIS_BIAS;
+                para.apply_now = 1;
+                // perform calibration instead
+                ret = calibrate(context->sensor->handle, &para, &cal_result);
+        } else {
+                // use persist value
+                ret = setCalibrateValue(fd, cross);
         }
-        // Set bias low 16 bits
-        data = ((cross & 0x0000ffff) << 16) | CMD_W_BIAS;
-        sprintf(buf, "%u", data);
-        ret = write(fd, buf, strlen(buf)+1);
         if (ret < 0) {
-                ALOGE("ProximitySensor CMD_W_BIAS calibrate low 16 bits error (%s)\n",
-                        strerror(errno));
-                goto calibrate_err;
+                // if all fails, use default value
+                ALOGI("ProximitySensor fall back to default crosstalk %d\n", CROSSTALK_DEFAULT);
+                ret = setCalibrateValue(fd, CROSSTALK_DEFAULT);
+                if (ret < 0) {
+                        ALOGE("ProximitySensor fall back to default crosstalk failed\n");
+                }
         }
-        data = CMD_COMPLETE;
-        sprintf(buf, "%u", data);
-        ret = write(fd, buf, strlen(buf)+1);
-        if (ret < 0) {
-                ALOGE("ProximitySensor CMD_COMPLETE of CMD_W_BIAS error (%s)\n",
-                        strerror(errno));
-        }
-calibrate_err:
+
         close(fd);
 }
 
@@ -505,4 +495,38 @@ int ProximitySensor::initCalibrate(int32_t, struct cal_result_t *cal_result)
         }
         ALOGE("open %s error\n", input_sysfs_path);
         return -1;
+}
+
+int ProximitySensor::setCalibrateValue(int fd, uint32_t value)
+{
+        int ret;
+        uint32_t data;
+        char buf[15]; // max unsigned 32 bit is 10 digit long
+        //Set bias high 16 bits
+        data = SET_CMD_H(value, CMD_W_BIAS);
+        snprintf(buf, sizeof(buf), "%u", data);
+        ret = write(fd, buf, strlen(buf) + 1);
+        if (ret < 0) {
+                ALOGE("ProximitySensor CMD_W_BIAS calibrate high 16 bits error (%s)\n",
+                        strerror(errno));
+                return -1;
+        }
+        // Set bias low 16 bits
+        data = SET_CMD_L(value, CMD_W_BIAS);
+        snprintf(buf, sizeof(buf), "%u", data);
+        ret = write(fd, buf, strlen(buf) + 1);
+        if (ret < 0) {
+                ALOGE("ProximitySensor CMD_W_BIAS calibrate low 16 bits error (%s)\n",
+                        strerror(errno));
+                return -1;
+        }
+        data = CMD_COMPLETE;
+        snprintf(buf, sizeof(buf), "%u", data);
+        ret = write(fd, buf, strlen(buf) + 1);
+        if (ret < 0) {
+                ALOGE("ProximitySensor CMD_COMPLETE of CMD_W_BIAS error (%s)\n",
+                        strerror(errno));
+        }
+        mBias = value;
+        return ret;
 }
