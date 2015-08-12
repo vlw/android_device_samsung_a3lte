@@ -102,6 +102,10 @@ PRODUCT_EXTRA_RECOVERY_KEYS += \
 PRODUCT_PACKAGES += \
     sensors.msm8916
 
+# Thermal
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/thermal-engine.conf:system/etc/thermal-engine.conf
+
 # Wifi
 PRODUCT_PACKAGES += \
     libwcnss_qmi
