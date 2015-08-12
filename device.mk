@@ -68,6 +68,11 @@ ADDITIONAL_DEFAULT_PROPERTIES += \
     ro.usb.id.ums_adb=3010 \
     ro.usb.vid=2a96
 
+# Display
+PRODUCT_PACKAGES += \
+    pp_calib_data_nt35521_dijing_4p7inch_hd_video_panel.xml \
+    svi_config.xml
+
 # GPS
 PRODUCT_PACKAGES += \
     gps.msm8916

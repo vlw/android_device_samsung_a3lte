@@ -161,10 +161,14 @@ bin/perfd
 vendor/lib/libqti-perfd-client.so
 
 # Postprocessing
+-app/colorservice/colorservice.apk
+-app/SVIService/SVIService.apk
 bin/mm-pp-daemon
 vendor/lib/libdisp-aba.so
 -vendor/lib/libmm-abl.so
 vendor/lib/libmm-abl-oem.so
+vendor/lib/libmm-als.so
+vendor/lib/libmm-qdcm.so
 
 # Qualcomm framework
 bin/irsc_util
