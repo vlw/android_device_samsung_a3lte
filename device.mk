@@ -70,6 +70,7 @@ ADDITIONAL_DEFAULT_PROPERTIES += \
 
 # Display
 PRODUCT_PACKAGES += \
+    libjni_livedisplay_qdcm \
     pp_calib_data_nt35521_dijing_4p7inch_hd_video_panel.xml \
     svi_config.xml
 
