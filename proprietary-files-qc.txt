@@ -161,7 +161,6 @@ bin/perfd
 vendor/lib/libqti-perfd-client.so
 
 # Postprocessing
--app/colorservice/colorservice.apk
 -app/SVIService/SVIService.apk
 bin/mm-pp-daemon
 vendor/lib/libdisp-aba.so
