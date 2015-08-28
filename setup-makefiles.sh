@@ -109,7 +109,8 @@ PRODUCT_PACKAGES += \\
 
 PRODUCT_PACKAGES += \\
     libqct_resampler \\
-    libmm-abl
+    libmm-abl \\
+    libmm-disp-apis
 
 PRODUCT_PACKAGES += \\
     libloc_api_v02 \\
@@ -276,6 +277,16 @@ include \$(CLEAR_VARS)
 LOCAL_MODULE := libmm-abl
 LOCAL_MODULE_OWNER := $VENDOR
 LOCAL_SRC_FILES := proprietary/vendor/lib/libmm-abl.so
+LOCAL_MODULE_PATH := \$(TARGET_OUT_VENDOR_SHARED_LIBRARIES)
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE_SUFFIX := .so
+LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+include \$(BUILD_PREBUILT)
+
+include \$(CLEAR_VARS)
+LOCAL_MODULE := libmm-disp-apis
+LOCAL_MODULE_OWNER := $VENDOR
+LOCAL_SRC_FILES := proprietary/vendor/lib/libmm-disp-apis.so
 LOCAL_MODULE_PATH := \$(TARGET_OUT_VENDOR_SHARED_LIBRARIES)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_SUFFIX := .so
