@@ -55,3 +55,6 @@ ro.sys.fw.bservice_age=5000
 
 # set max background services
 ro.config.max_starting_bg=8
+
+# disable camera debug spam
+persist.camera.hal.debug.mask=0
