@@ -15,10 +15,10 @@
 <MinBacklightReductionRatio units="int">820</MinBacklightReductionRatio>
 <BacklightReductionMode units="int">0</BacklightReductionMode>
 <EnableBacklightReduction units="int">0</EnableBacklightReduction>
-<IndoorMinLuxLevel units="int">3</IndoorMinLuxLevel>
-<IndoorMinBrightnessLevel units="int">17</IndoorMinBrightnessLevel>
-<IndoorMaxLuxLevel units="int">3000</IndoorMaxLuxLevel>
-<IndoorMaxBrightnessLevel units="int">135</IndoorMaxBrightnessLevel>
+<IndoorMinLuxLevel units="int">300</IndoorMinLuxLevel>
+<IndoorMinBrightnessLevel units="int">50</IndoorMinBrightnessLevel>
+<IndoorMaxLuxLevel units="int">2000</IndoorMaxLuxLevel>
+<IndoorMaxBrightnessLevel units="int">120</IndoorMaxBrightnessLevel>
 <OutdoorMaxLuxLevel units="int">15000</OutdoorMaxLuxLevel>
 <OutdoorMaxBrightnessLevel units="int">255</OutdoorMaxBrightnessLevel>
 </Group>
