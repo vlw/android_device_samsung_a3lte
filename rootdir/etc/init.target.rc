@@ -52,12 +52,18 @@ on boot
     chown system system /sys/class/leds/green/led_time
     chown system system /sys/class/leds/blue/led_time
 
+    # Prefer live data in memory
+    write /proc/sys/vm/vfs_cache_pressure 120
+
     # Per-process reclaim
     write /sys/module/process_reclaim/parameters/enable_process_reclaim 1
     write /sys/module/process_reclaim/parameters/pressure_min 50
     write /sys/module/process_reclaim/parameters/pressure_max 70
     write /sys/module/process_reclaim/parameters/per_swap_size 512
     write /sys/module/process_reclaim/parameters/swap_opt_eff 30
+
+    write /sys/block/mmcblk0/queue/add_random 0
+    write /sys/block/mmclbk0/queue/iosched/slice_idle 0
 
 on post-fs
     swapon_all /fstab.qcom
