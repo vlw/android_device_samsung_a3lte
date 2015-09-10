@@ -27,34 +27,5 @@ ril.ecclist1=000,08,100,101,102,110,112,118,119,120,122,911,999
 ro.config.always_show_roaming=true
 ro.telephony.default_network=9,1
 
-#snapdragon value add features
-#
-ro.qc.sdk.audio.ssr=false
-
-#Set for msm8916
-#Buffer size in kbytes for compress offload playback
-#Minimum duration for offload playback in secs
-audio.offload.min.duration.secs=30
-#
-#System property for FM transmitter
-#
-ro.fm.transmitter=false
-#enable dsp gapless mode by default
-
-#Trim properties
-ro.sys.fw.use_trim_settings=true
-ro.sys.fw.empty_app_percent=50
-ro.sys.fw.trim_empty_percent=100
-ro.sys.fw.trim_cache_percent=100
-ro.sys.fw.trim_enable_memory=1073741824
-
-#Enable B service adj transition by default
-ro.sys.fw.bservice_enable=true
-ro.sys.fw.bservice_limit=5
-ro.sys.fw.bservice_age=5000
-
-# set max background services
-ro.config.max_starting_bg=8
-
 # disable camera debug spam
 persist.camera.hal.debug.mask=0
