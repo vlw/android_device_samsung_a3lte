@@ -11,7 +11,7 @@
 <BacklightResponseTableOutput units="uint">0, 100, 255</BacklightResponseTableOutput>
 <BackLightResponseTableLength units="int">3</BackLightResponseTableLength>
 <PanelReflectanceRatio units="int">9</PanelReflectanceRatio>
-<PanelPeakBrightness units="int">250</PanelPeakBrightness>
+<PanelPeakBrightness units="int">381</PanelPeakBrightness>
 <MinBacklightReductionRatio units="int">820</MinBacklightReductionRatio>
 <BacklightReductionMode units="int">0</BacklightReductionMode>
 <EnableBacklightReduction units="int">0</EnableBacklightReduction>
