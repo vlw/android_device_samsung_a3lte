@@ -191,7 +191,7 @@ vendor/lib/libqmi.so
 vendor/lib/libsmemlog.so
 
 # Radio
--app/qcrilmsgtunnel/qcrilmsgtunnel.apk
+-priv-app/qcrilmsgtunnel/qcrilmsgtunnel.apk
 -app/shutdownlistener/shutdownlistener.apk
 bin/netmgrd
 bin/qmuxd
@@ -214,7 +214,7 @@ vendor/lib/libsystem_health_mon.so
 vendor/lib/libxml.so
 
 # Thermal
-bin/thermal-engine
+vendor/bin/thermal-engine
 vendor/lib/libthermalclient.so
 vendor/lib/libthermalioctl.so
 

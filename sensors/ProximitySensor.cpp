@@ -43,7 +43,8 @@ static int cross;
 /*****************************************************************************/
 
 enum input_device_name {
-    GENERIC_PSENSOR = 0,
+    LTR559_PS = 0,
+    GENERIC_PSENSOR,
     LEGACY_PSENSOR,
     CM36283_PS,
     PS_CROSSTALK,
@@ -52,6 +53,7 @@ enum input_device_name {
 };
 
 static const char *data_device_name[SUPPORTED_PSENSOR_COUNT] = {
+   [LTR559_PS] = "ltr559-ps",
    [GENERIC_PSENSOR] = "proximity",
     [LEGACY_PSENSOR] = "proximity",
         [CM36283_PS] = "cm36283-ps",
@@ -61,6 +63,7 @@ static const char *data_device_name[SUPPORTED_PSENSOR_COUNT] = {
 
 static const char *input_sysfs_path_list[SUPPORTED_PSENSOR_COUNT] = {
    /* This is not used by generic HAL. Just for back compatibility */
+         [LTR559_PS] = "/sys/class/input/%s/device/",
    [GENERIC_PSENSOR] = "/sys/class/input/%s/device/",
     [LEGACY_PSENSOR] = "/sys/class/input/%s/device/",
         [CM36283_PS] = "/sys/class/input/%s/device/",
@@ -69,6 +72,7 @@ static const char *input_sysfs_path_list[SUPPORTED_PSENSOR_COUNT] = {
 };
 
 static const char *input_sysfs_enable_list[SUPPORTED_PSENSOR_COUNT] = {
+         [LTR559_PS] = "enable",
    [GENERIC_PSENSOR] = "enable",
     [LEGACY_PSENSOR] = "enable",
         [CM36283_PS] = "enable",
