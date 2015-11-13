@@ -46,9 +46,6 @@ ifeq ($(HOST_OS),linux)
   endif
 endif
 
-# Flags
-COMMON_GLOBAL_CFLAGS += -DNO_SECURE_DISCARD
-
 # GPS
 USE_DEVICE_SPECIFIC_GPS := true
 TARGET_NO_RPC := true
