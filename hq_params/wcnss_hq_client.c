@@ -27,6 +27,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 
 #ifndef WCNSS_GENMAC_FILE
 #define WCNSS_GENMAC_FILE "/persist/.genmac"
