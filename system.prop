@@ -11,9 +11,6 @@ ro.qualcomm.svi=1
 config.svi.xml=1
 config.svi.path=/system/etc/svi_config.xml
 
-# OTG
-persist.sys.isUsbOtgEnabled=1
-
 # Factory reset protection
 ro.frp.pst=/dev/block/bootdevice/by-name/frp
 
