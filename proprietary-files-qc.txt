@@ -106,21 +106,12 @@ vendor/lib/libWVStreamControlAPI_L3.so
 vendor/lib/mediadrm/libwvdrmengine.so
 
 # GPS
-etc/permissions/com.qualcomm.location.xml
 -lib/libloc_api_v02.so
 -lib/libloc_ds_api.so
--priv-app/com.qualcomm.location/com.qualcomm.location.apk
 vendor/lib/hw/flp.default.so
 vendor/lib/libgeofence.so
 vendor/lib/libizat_core.so
 vendor/lib/liblbs_core.so
-vendor/lib/liblocationservice.so
-vendor/lib/liblowi_client.so
-vendor/lib/libQtiTether.so
-vendor/lib/libquipc_os_api.so
-vendor/lib/libulp2.so
-vendor/lib/libxtadapter.so
-vendor/lib/libxtwifi_ulp_adaptor.so
 
 # Graphics
 vendor/lib/egl/eglsubAndroid.so
