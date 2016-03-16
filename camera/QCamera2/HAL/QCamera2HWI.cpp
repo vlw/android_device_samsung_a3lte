@@ -54,12 +54,14 @@
 
 namespace qcamera {
 
+static int gCamOpened[MM_CAMERA_MAX_NUM_SENSORS] = {0};
+static pthread_mutex_t gSingleUseLock = PTHREAD_MUTEX_INITIALIZER;
+
 cam_capability_t *gCamCapability[MM_CAMERA_MAX_NUM_SENSORS];
 qcamera_saved_sizes_list savedSizes[MM_CAMERA_MAX_NUM_SENSORS];
 
 static pthread_mutex_t g_camlock = PTHREAD_MUTEX_INITIALIZER;
 volatile uint32_t gCamHalLogLevel = 0;
-unsigned int QCamera2HardwareInterface::mCameraSessionActive = 0;
 
 camera_device_ops_t QCamera2HardwareInterface::mCameraOps = {
     set_preview_window:         QCamera2HardwareInterface::set_preview_window,
@@ -917,10 +919,6 @@ int QCamera2HardwareInterface::close_camera_device(hw_device_t *hw_dev)
         return BAD_VALUE;
     }
     delete hw;
-
-    pthread_mutex_lock(&g_camlock);
-    mCameraSessionActive = 0;
-    pthread_mutex_unlock(&g_camlock);
     CDBG_HIGH("[KPI Perf] %s: X",__func__);
     return ret;
 }
@@ -1113,34 +1111,33 @@ int QCamera2HardwareInterface::openCamera(struct hw_device_t **hw_device)
 {
     ATRACE_CALL();
     int rc = NO_ERROR;
-
-    pthread_mutex_lock(&g_camlock);
-    // if mCameraSessionActive is 1 then return EUSERS to indicate MAX_CAMERAS_IN_USE to APP
-    // TODO: This needs to be replaced by checking SENSOR combination & Number of VFE's
-    if (mCameraSessionActive) {
-        ALOGE("%s: multiple simultaneous camera instance not supported", __func__);
-        pthread_mutex_unlock(&g_camlock);
-        return -EUSERS;
-    }
-    pthread_mutex_unlock(&g_camlock);
-
     if (mCameraOpened) {
         *hw_device = NULL;
         return PERMISSION_DENIED;
     }
     CDBG_HIGH("[KPI Perf] %s: E PROFILE_OPEN_CAMERA camera id %d", __func__,mCameraId);
+
+    pthread_mutex_lock(&gSingleUseLock);
+
+    if (gCamOpened[!mCameraId]) {
+        ALOGE("Failure: other camera already opened");
+        pthread_mutex_unlock(&gSingleUseLock);
+        return -EUSERS;
+    }
+
     rc = openCamera();
     if (rc == NO_ERROR){
+        gCamOpened[mCameraId] = 1;
         *hw_device = &mCameraDevice.common;
-        pthread_mutex_lock(&g_camlock);
-        mCameraSessionActive = 1;
-        pthread_mutex_unlock(&g_camlock);
         if (m_thermalAdapter.init(this) != 0) {
           ALOGE("Init thermal adapter failed");
         }
     }
     else
         *hw_device = NULL;
+
+    pthread_mutex_unlock(&gSingleUseLock);
+
     return rc;
 }
 
@@ -1300,6 +1297,8 @@ int QCamera2HardwareInterface::closeCamera()
         return NO_ERROR;
     }
 
+    pthread_mutex_lock(&gSingleUseLock);
+
     pthread_mutex_lock(&m_parm_lock);
 
     // set open flag to false
@@ -1341,6 +1340,8 @@ int QCamera2HardwareInterface::closeCamera()
 
     rc = mCameraHandle->ops->close_camera(mCameraHandle->camera_handle);
     mCameraHandle = NULL;
+    gCamOpened[mCameraId] = 0;
+    pthread_mutex_unlock(&gSingleUseLock);
     if (mExifParams.debug_params) {
         free(mExifParams.debug_params);
     }
@@ -1586,12 +1587,14 @@ uint8_t QCamera2HardwareInterface::getBufNumRequired(cam_stream_type_t stream_ty
                 if (minCaptureBuffers == 1 && !mLongshotEnabled) {
                     // Single ZSL snapshot case
                     bufferCnt = zslQBuffers + CAMERA_MIN_STREAMING_BUFFERS +
-                            mParameters.getNumOfExtraBuffersForImageProc();
+                            mParameters.getNumOfExtraBuffersForImageProc() +
+                            mParameters.getNumOfExtraHDRInBufsIfNeeded();
                 }
                 else {
                     // ZSL Burst or Longshot case
                     bufferCnt = zslQBuffers + minCircularBufNum +
-                            mParameters.getNumOfExtraBuffersForImageProc();
+                            mParameters.getNumOfExtraBuffersForImageProc() +
+                            mParameters.getNumOfExtraHDRInBufsIfNeeded();
                 }
                 if (getSensorType() == CAM_SENSOR_YUV &&
                     !gCamCapability[mCameraId]->use_pix_for_SOC) {
@@ -4040,6 +4043,13 @@ int32_t QCamera2HardwareInterface::processAutoFocusEvent(cam_auto_focus_data_t &
             break;
         }
 
+        // If the HAL focus mode is different from AF INFINITY focus mode, send event to app
+        if ((focus_data.focus_mode == CAM_FOCUS_MODE_INFINITY) &&
+                (focus_data.focus_state == CAM_AF_INACTIVE)) {
+            ret = sendEvtNotify(CAMERA_MSG_FOCUS, true, 0);
+            break;
+        }
+
         if (focus_data.focus_state == CAM_AF_PASSIVE_SCANNING ||
             focus_data.focus_state == CAM_AF_PASSIVE_FOCUSED ||
             focus_data.focus_state == CAM_AF_PASSIVE_UNFOCUSED) {
@@ -4078,6 +4088,14 @@ int32_t QCamera2HardwareInterface::processAutoFocusEvent(cam_auto_focus_data_t &
         break;
     case CAM_FOCUS_MODE_CONTINOUS_VIDEO:
     case CAM_FOCUS_MODE_CONTINOUS_PICTURE:
+
+        // If the HAL focus mode is different from AF INFINITY focus mode, send event to app
+        if ((focus_data.focus_mode == CAM_FOCUS_MODE_INFINITY) &&
+                (focus_data.focus_state == CAM_AF_INACTIVE)) {
+            ret = sendEvtNotify(CAMERA_MSG_FOCUS, false, 0);
+            break;
+        }
+
         if (mActiveAF &&
             (focus_data.focus_state == CAM_AF_PASSIVE_FOCUSED ||
             focus_data.focus_state == CAM_AF_PASSIVE_UNFOCUSED)) {
@@ -4177,6 +4195,7 @@ int32_t QCamera2HardwareInterface::processHDRData(cam_asd_hdr_scene_data_t hdr_s
     int rc = NO_ERROR;
 
 #ifndef VANILLA_HAL
+
     if (hdr_scene.is_hdr_scene &&
       (hdr_scene.hdr_confidence > HDR_CONFIDENCE_THRESHOLD) &&
       mParameters.isAutoHDREnabled()) {
@@ -4233,6 +4252,7 @@ int32_t QCamera2HardwareInterface::processHDRData(cam_asd_hdr_scene_data_t hdr_s
           __func__,
           hdr_scene.is_hdr_scene,
           hdr_scene.hdr_confidence);
+
 #endif
   return rc;
 }
@@ -5705,7 +5725,7 @@ int32_t QCamera2HardwareInterface::processFaceDetectionResult(cam_face_detection
 #ifndef VANILLA_HAL
         (fd_type == QCAMERA_FD_SNAPSHOT && !msgTypeEnabled(CAMERA_MSG_META_DATA))
 #else
-	(fd_type == QCAMERA_FD_SNAPSHOT)
+        (fd_type == QCAMERA_FD_SNAPSHOT)
 #endif
         ) {
         CDBG_HIGH("%s: metadata msgtype not enabled, no ops here", __func__);

@@ -654,7 +654,7 @@ const QCameraParameters::QCameraMap<int>
 
 const QCameraParameters::QCameraMap<int>
         QCameraParameters::DENOISE_ON_OFF_MODES_MAP[] = {
-    { DENOISE_OFF, 0 },
+    { DENOISE_OFF, 1 },
     { DENOISE_ON,  1 }
 };
 
@@ -1273,47 +1273,6 @@ int32_t QCameraParameters::setPreviewSize(const QCameraParameters& params)
 }
 
 /*===========================================================================
- * FUNCTION   : updateViewAngle
- *
- * DESCRIPTION: update horizontal view angle for CTS based on snapshot res
- *
- * PARAMETERS : int width
-                int height
- *
- * RETURN     :
- *==========================================================================*/
-void QCameraParameters::updateViewAngle(int width, int height)
-{
-    float max_widthf = m_pCapability->picture_sizes_tbl[m_pCapability->picture_sizes_tbl_cnt-1].width;
-    float max_heightf = m_pCapability->picture_sizes_tbl[m_pCapability->picture_sizes_tbl_cnt-1].height;
-    float widthf = width;
-    float heightf = height;
-    float new_ar = widthf/heightf;
-    float native_ar = max_widthf/max_heightf;
-    float native_hfov = m_pCapability->hor_view_angle;
-    float hor_view_angle;
-    float view_ratio; //math intermediate
-    float intermediate_angle; //math intermediate
-
-    if(width <= 0 || height <= 0) {
-        ALOGE("%s: width is %d and height is %d", __func__, width, height);
-        return;
-    }
-
-    //0.01 float fudge
-    if(new_ar + 0.01f < native_ar) {
-        //Aspect ratio less than native implies horizontal crop so update FOV
-        view_ratio = tan((3.14159f/180.0f) * native_hfov/2);
-        intermediate_angle = atan((new_ar)*view_ratio/(native_ar));
-        hor_view_angle = (180.0f/3.14159f) * 2 * intermediate_angle;
-        setFloat(KEY_HORIZONTAL_VIEW_ANGLE, hor_view_angle);
-    } else {
-        setFloat(KEY_HORIZONTAL_VIEW_ANGLE, native_hfov);
-    }
-
-}
-
-/*===========================================================================
  * FUNCTION   : setPictureSize
  *
  * DESCRIPTION: set picture size from user setting
@@ -1347,7 +1306,6 @@ int32_t QCameraParameters::setPictureSize(const QCameraParameters& params)
                 // set the new value
                 CDBG_HIGH("%s: Requested picture size %d x %d", __func__, width, height);
                 CameraParameters::setPictureSize(width, height);
-                updateViewAngle(width, height);
                 return NO_ERROR;
             }
         }
@@ -1367,7 +1325,6 @@ int32_t QCameraParameters::setPictureSize(const QCameraParameters& params)
             sprintf(val, "%dx%d", width, height);
             CDBG_HIGH("%s: picture size requested %s", __func__, val);
             updateParamEntry(KEY_PICTURE_SIZE, val);
-            updateViewAngle(width, height);
             return NO_ERROR;
         }
     }
@@ -4667,7 +4624,7 @@ int32_t QCameraParameters::initDefaultParameters()
             ANTIBANDING_MODES_MAP,
             PARAM_MAP_SIZE(ANTIBANDING_MODES_MAP));
     set(KEY_SUPPORTED_ANTIBANDING, antibandingValues);
-    setAntibanding(ANTIBANDING_OFF);
+    setAntibanding(ANTIBANDING_AUTO);
 
     // Set Effect
     String8 effectValues = createValuesString(
@@ -5070,9 +5027,7 @@ int32_t QCameraParameters::initDefaultParameters()
     CDBG_HIGH("%s: totalram = %ld, freeram = %ld ", __func__, info.totalram,
         info.freeram);
     if (info.totalram > TOTAL_RAM_SIZE_512MB) {
-        /* Report as unsupported on Jalebi. It's buggy and provides almost no
-           benefit .*/
-        set(KEY_QC_ZSL_HDR_SUPPORTED, VALUE_FALSE);
+        set(KEY_QC_ZSL_HDR_SUPPORTED, VALUE_TRUE);
     } else {
         m_bIsLowMemoryDevice = true;
         set(KEY_QC_ZSL_HDR_SUPPORTED, VALUE_FALSE);
@@ -6687,7 +6642,7 @@ int QCameraParameters::getAutoFlickerMode()
       Currently setting it to default    */
     char prop[PROPERTY_VALUE_MAX];
     memset(prop, 0, sizeof(prop));
-    property_get("persist.camera.set.afd", prop, "3");
+    property_get("persist.camera.set.afd", prop, "4");
     return atoi(prop);
 }
 
