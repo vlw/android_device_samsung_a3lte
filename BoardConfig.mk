@@ -35,13 +35,9 @@ endif
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(DEVICE_PATH)/bluetooth
 
 # Camera
-BOARD_CAMERA_SENSORS := \
-    ov8865_qtech_baly_6c \
-    gc2355_blx_ffln_78
-
+BOARD_CAMERA_SENSORS := ov8865_qtech_baly_6c gc2355_blx_ffln_78
 TARGET_USE_VENDOR_CAMERA_EXT := true
 USE_DEVICE_SPECIFIC_CAMERA := true
-TARGET_USES_AOSP := true
 
 # Dex
 ifeq ($(HOST_OS),linux)
