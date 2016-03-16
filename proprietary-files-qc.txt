@@ -35,8 +35,8 @@ vendor/lib/libmmcamera2_imglib_modules.so
 vendor/lib/libmmcamera2_isp_modules.so
 vendor/lib/libmmcamera2_is.so
 vendor/lib/libmmcamera2_pproc_modules.so
-vendor/lib/libmmcamera2_sensor_modules.so
 vendor/lib/libmmcamera2_q3a_core.so
+vendor/lib/libmmcamera2_sensor_modules.so
 vendor/lib/libmmcamera2_stats_algorithm.so
 vendor/lib/libmmcamera2_stats_modules.so
 vendor/lib/libmmcamera2_vpe_module.so
@@ -45,8 +45,6 @@ vendor/lib/libmmcamera_faceproc.so
 vendor/lib/libmmcamera_hdr_gb_lib.so
 vendor/lib/libmmcamera_hdr_lib.so
 vendor/lib/libmmcamera_imglib.so
-vendor/lib/libmmcamera_pdafcamif.so
-vendor/lib/libmmcamera_pdaf.so
 vendor/lib/libmmcamera_tintless_algo.so
 vendor/lib/libmmcamera_tintless_bg_pca_algo.so
 vendor/lib/libmmcamera_wavelet_lib.so
@@ -92,9 +90,6 @@ vendor/lib/libmmcamera_ov8865_qtech_baly_6c.so
 # DRM
 bin/qseecomd
 lib/libdrmdecrypt.so
-vendor/lib/libprdrmdecrypt.so
-vendor/lib/drm/libdrmwvmplugin.so
-vendor/lib/libdpmtcm.so
 vendor/lib/libdrmfs.so
 vendor/lib/libdrmtime.so
 vendor/lib/libQSEEComAPI.so
@@ -103,6 +98,7 @@ vendor/lib/libssd.so
 vendor/lib/libwvdrm_L3.so
 vendor/lib/libwvm.so
 vendor/lib/libWVStreamControlAPI_L3.so
+vendor/lib/drm/libdrmwvmplugin.so
 vendor/lib/mediadrm/libwvdrmengine.so
 
 # GPS
@@ -161,7 +157,6 @@ vendor/bin/perfd
 vendor/lib/libqti-perfd-client.so
 
 # Postprocessing
--app/SVIService/SVIService.apk
 bin/mm-pp-daemon
 vendor/lib/libdisp-aba.so
 -vendor/lib/libmm-abl.so
@@ -182,6 +177,7 @@ vendor/lib/libqcci_legacy.so
 vendor/lib/libqdi.so
 vendor/lib/libqdp.so
 vendor/lib/libqmi_cci.so
+vendor/lib/libqmi_client_helper.so
 vendor/lib/libqmi_client_qmux.so
 vendor/lib/libqmi_common_so.so
 vendor/lib/libqmi_csi.so
@@ -204,6 +200,7 @@ etc/permissions/qcrilhook.xml
 -framework/qcrilhook.jar
 vendor/lib/libcneapiclient.so
 vendor/lib/libconfigdb.so
+vendor/lib/liblqe.so
 vendor/lib/libmdmdetect.so
 vendor/lib/libnetmgr.so
 vendor/lib/libperipheral_client.so
