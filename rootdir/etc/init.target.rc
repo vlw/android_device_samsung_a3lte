@@ -60,7 +60,6 @@ on boot
     write /sys/module/process_reclaim/parameters/swap_opt_eff 30
 
     write /sys/block/mmcblk0/queue/add_random 0
-    write /sys/block/mmcblk0/queue/iosched/slice_idle 0
     write /sys/block/mmcblk0/bdi/read_ahead_kb 128
 
     # Adaptive LMK
@@ -79,13 +78,6 @@ on charger
     chmod 0664 /sys/class/power_supply/bms/current_now
     chmod 0664 /sys/class/power_supply/bms/voltage_ocv
     start vm_bms
-
-on property:service.bootanim.exit=1
-    # KSM options
-    write /sys/kernel/mm/ksm/pages_to_scan 100
-    write /sys/kernel/mm/ksm/sleep_millisecs 100
-    write /sys/kernel/mm/ksm/deferred_timer 1
-    write /sys/kernel/mm/ksm/run 1
 
 service vm_bms /system/bin/vm_bms
     class core
