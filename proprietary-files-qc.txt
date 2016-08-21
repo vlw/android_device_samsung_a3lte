@@ -53,12 +53,12 @@ vendor/lib/libmmqjpeg_codec.so
 vendor/lib/liboemcamera.so
 vendor/lib/libqomx_jpegenc.so
 
-# Camera Actuator
+# Camera actuator
 vendor/lib/libactuator_wv517s_f8865bs.so
 vendor/lib/libactuator_wv517s_f8865bs_camcorder.so
 vendor/lib/libactuator_wv517s_f8865bs_camera.so
 
-# Camera Chromatix
+# Camera chromatix
 vendor/lib/libchromatix_gc2355_blx_ffln_78_common.so
 vendor/lib/libchromatix_gc2355_blx_ffln_78_default_video.so
 vendor/lib/libchromatix_gc2355_blx_ffln_78_preview.so
@@ -82,7 +82,7 @@ etc/firmware/cpp_firmware_v1_1_6.fw
 etc/firmware/cpp_firmware_v1_2_0.fw
 etc/firmware/cpp_firmware_v1_4_0.fw
 
-# Camera Sensor
+# Camera sensors
 vendor/lib/libmmcamera_gc2355_blx_ffln_78.so
 vendor/lib/libmmcamera_ov8865_qtech_baly_6c.so
 
@@ -200,10 +200,10 @@ vendor/lib/libqti-perfd-client.so
 # Postprocessing
 bin/mm-pp-daemon
 vendor/lib/libdisp-aba.so
--vendor/lib/libmm-abl.so
+vendor/lib/libmm-abl.so
 vendor/lib/libmm-abl-oem.so
 vendor/lib/libmm-als.so
--vendor/lib/libmm-disp-apis.so
+vendor/lib/libmm-disp-apis.so
 vendor/lib/libmm-qdcm.so
 
 # Qualcomm framework
@@ -228,7 +228,6 @@ vendor/lib/libqmi.so
 vendor/lib/libsmemlog.so
 
 # Radio
--priv-app/qcrilmsgtunnel/qcrilmsgtunnel.apk
 -app/shutdownlistener/shutdownlistener.apk
 bin/netmgrd
 bin/qmuxd
@@ -239,6 +238,7 @@ etc/permissions/qcnvitems.xml
 etc/permissions/qcrilhook.xml
 -framework/qcnvitems.jar
 -framework/qcrilhook.jar
+-priv-app/qcrilmsgtunnel/qcrilmsgtunnel.apk
 vendor/lib/libconfigdb.so
 vendor/lib/liblqe.so
 vendor/lib/libmdmdetect.so
