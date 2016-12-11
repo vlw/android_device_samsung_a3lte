@@ -1,3 +1,1 @@
-allow wcnss_service persist_file:dir ra_dir_perms;
-type_transition wcnss_service persist_file:file wifi_data_file ".genmac";
 type_transition wcnss_service persist_file:file wifi_data_file "wlan_mac.bin";
