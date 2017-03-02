@@ -104,6 +104,34 @@ vendor/lib/libgeofence.so
 vendor/lib/libizat_core.so
 vendor/lib/liblbs_core.so
 
+# Graphics - from athene
+vendor/lib/egl/eglsubAndroid.so|936e05078ff4494995034a840823e0a7702651c5
+vendor/lib/egl/eglSubDriverAndroid.so|1fd1f3d52fd8dc088cf203089dd941153346ce62
+vendor/lib/egl/libEGL_adreno.so|10a33ff535ea4569179ba478d9b2fb2fee4e8130
+vendor/lib/egl/libESXEGL_adreno.so|d5074fd3ef035e5bcb5cd8473468eb5f83affbe5
+vendor/lib/egl/libESXGLESv1_CM_adreno.so|20475a289ad996ca31236bc8ddeac5433bdc269f
+vendor/lib/egl/libESXGLESv2_adreno.so|36bb5cf5767b92bc813961e8f891b93d74c2421e
+vendor/lib/egl/libGLESv1_CM_adreno.so|5f518aca064d0b781d66dd2b9540debc67a41ea9
+vendor/lib/egl/libGLESv2_adreno.so|0251c237d4974ba7d96a97defe5b563dcc78bdd3
+vendor/lib/egl/libq3dtools_adreno.so|f178fe1d214c83c0ae6481cd8ded8afe5a456b53
+vendor/lib/egl/libQTapGLES.so|641e9dcb76d8339a162f7be548cd199685815583
+vendor/lib/egl/libRBEGL_adreno.so|45cf9f43f94830d01a4d4464c52d4fdd76528f69
+vendor/lib/egl/libRBGLESv1_CM_adreno.so|97d44ecded1ff5863f487091da6afb6f78130411
+vendor/lib/egl/libRBGLESv2_adreno.so|f1791c5ef768378e3d0a2b3db705c7c3045817f1
+vendor/lib/libadreno_utils.so|d4a113a80bb313b48801465bb74f2da53fb6d749
+vendor/lib/libc2d30-a3xx.so|e3ea2db49f7ee3b143c9541cdd33cc432a3dd88e
+vendor/lib/libC2D2.so|bf022ca7ad983f5afa5cbd95eacb53b05bc11a76
+vendor/lib/libCB.so|b67b8ecb87e2dac828ccf1380bcfb7111bbc880b
+vendor/lib/libgsl.so|a3d75fb2adc80b0ce18d75f57b088b8b0a604920
+vendor/lib/libllvm-glnext.so|f89e2037b462c8af0f94cdbdeca075452bce0edd
+vendor/lib/libllvm-qcom.so|dcace4e9cd6c846507f0f8d137f0fa19dc179ec5
+vendor/lib/libOpenCL.so|571a73f8c888b1cb91706ca800a8fbd2ea3e44a7
+vendor/lib/libRSDriver_adreno.so|2046eb170302c2fd40d541eb3bc82aab539f35a8
+vendor/lib/librs_adreno.so|49ac9a51b1d7248ec48a91cea79e7f865a231d77
+vendor/lib/librs_adreno_sha1.so|44e571a9f87b10ceddcffd411536f7ee95587014
+vendor/lib/libsc-a3xx.so|54238c5b1f085335a3675678017aa2be45d94252
+vendor/lib/libscale.so|277641b50da05c6e3a67bf5199c9873e2d5429e8
+
 # Graphics firmware
 etc/firmware/a300_pfp.fw
 etc/firmware/a300_pm4.fw
