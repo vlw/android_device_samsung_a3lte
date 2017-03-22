@@ -18,7 +18,6 @@ vendor/lib/soundfx/libqcvirt.so
 bin/vm_bms:vendor/bin/vm_bms
 
 # Bluetooth
-bin/btnvtool:vendor/bin/btnvtool
 bin/hci_qcomm_init:vendor/bin/hci_qcomm_init
 vendor/lib/libbtnv.so
 
