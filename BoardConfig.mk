@@ -23,4 +23,4 @@ include device/yu/jalebi/board/*.mk
 TARGET_BOARD_INFO_FILE := device/yu/jalebi/board-info.txt
 
 # Inherit from proprietary files
--include vendor/yu/jalebi/BoardConfigVendor.mk
+include vendor/yu/jalebi/BoardConfigVendor.mk
