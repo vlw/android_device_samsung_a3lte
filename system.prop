@@ -16,7 +16,7 @@ ro.qualcomm.svi=1
 ro.sf.lcd_density=320
 
 # Factory reset protection
-ro.frp.pst=/dev/block/bootdevice/by-name/frp
+ro.frp.pst=/dev/block/platform/soc.0/7824900.sdhci/by-name/frp
 
 # Perf
 ro.sys.fw.dex2oat_thread_count=4
