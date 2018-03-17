@@ -26,7 +26,6 @@
 #include <cutils/log.h>
 #include <cutils/properties.h>
 #include <stdlib.h>
-//added by yanfei for acc calibration 2014-06-18 begin
 #include <stdio.h>
 #include "AccelSensor.h"
 #include "sensors.h"
@@ -45,12 +44,12 @@
 
 #define SYSFS_I2C_SLAVE_PATH	"/device/device/"
 #define SYSFS_INPUT_DEV_PATH	"/device/"
-//added by yanfei for acc calibration 2014-06-18 begin
+
+#define ARRAY	3
+
 static float offset_x;
 static float offset_y;
 static float offset_z;
-
-#define ARRAY  3
 
 int read_persist_acc_avg(void)
 {
@@ -59,28 +58,30 @@ int read_persist_acc_avg(void)
 	char acc_avg_y[20];
 	char acc_avg_z[20];
 
-	stream = fopen("/persist/acc_avg","r");
+	stream = fopen("/persist/acc_avg", "r");
 
-	if(stream == NULL)
-	{
+	if (stream == NULL) {
 		offset_x = 0;
 		offset_y = 0;
 		offset_z = 0;
 		ALOGE("acc_avg read error");
 		return -1;
 	}
-	fgets(acc_avg_x,sizeof(acc_avg_x),stream);
-	fgets(acc_avg_y,sizeof(acc_avg_y),stream);
-	fgets(acc_avg_z,sizeof(acc_avg_z),stream);
+
+	fgets(acc_avg_x, sizeof(acc_avg_x), stream);
+	fgets(acc_avg_y, sizeof(acc_avg_y), stream);
+	fgets(acc_avg_z, sizeof(acc_avg_z), stream);
+
 	fclose(stream);
+
 	offset_x = atof(acc_avg_x);
 	offset_y = atof(acc_avg_y);
 	offset_z = atof(acc_avg_z);
-	ALOGE("offset_x = %f, offset_y = %f, offset_z = %f",offset_x,offset_y,offset_z);
+
+	ALOGI("offset_x = %f, offset_y = %f, offset_z = %f",
+			offset_x, offset_y, offset_z);
 	return 0;
-//	ALOGE("prox_avg_persist = %d",prox_avg_persist);
 }
-//added by yanfei for acc calibration 2014-06-18 end
 
 /*****************************************************************************/
 
@@ -123,8 +124,7 @@ AccelSensor::AccelSensor(char *name)
 		strlcat(input_sysfs_path, "/", sizeof(input_sysfs_path));
 		input_sysfs_path_len = strlen(input_sysfs_path);
 		ALOGI("The accel sensor path is %s",input_sysfs_path);
-		// Del by yanwenlong for fastmmi test. (general) 2014-6-27
-        //enable(0, 1);
+		enable(0, 1);
 	}
 }
 
@@ -145,7 +145,7 @@ AccelSensor::AccelSensor(SensorContext *context)
 	data_fd = context->data_fd;
 	ALOGI("The accel sensor path is %s",input_sysfs_path);
 	mUseAbsTimeStamp = false;
-    //enable(0, 1);
+	enable(0, 1);
 }
 
 AccelSensor::~AccelSensor() {
@@ -155,7 +155,6 @@ AccelSensor::~AccelSensor() {
 }
 
 int AccelSensor::enable(int32_t, int en) {
-	//added by yanfei for acc calibration 2014-06-18 begin
 	int ret = -1;
 	int flags = en ? 1 : 0;
 	char propBuf[PROPERTY_VALUE_MAX];
@@ -169,10 +168,9 @@ int AccelSensor::enable(int32_t, int en) {
 	if (flags != mEnabled) {
 		int fd;
 		ret = read_persist_acc_avg();
-		if(ret < 0)
-		 {
-		    ALOGE("read acc_avg error\n");
-		 }
+		if (ret < 0) {
+		        ALOGE("read acc_avg error\n");
+		}
 		strlcpy(&input_sysfs_path[input_sysfs_path_len],
 				SYSFS_ENABLE, SYSFS_MAXLEN);
 		fd = open(input_sysfs_path, O_RDWR);
@@ -257,7 +255,6 @@ again:
 		int type = event->type;
 		if (type == EV_ABS) {
 			float value = event->value;
-
 			if (event->code == EVENT_TYPE_ACCEL_X) {
 				mPendingEvent.data[0] = offset_x + value * CONVERT_ACCEL_X;
 			} else if (event->code == EVENT_TYPE_ACCEL_Y) {

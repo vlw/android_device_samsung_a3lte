@@ -26,16 +26,6 @@ WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
 OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
 IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------*/
-/* dangku
- * modify the name of sensor in virtualSensorList for akm virtual gyroscope support
- * virtualSensorName[ORIENTATION] --> "oem-orientation"
- * virtualSensorName[PSEUDO_GYROSCOPE] --> "oem-pseudo-gyro"
- * virtualSensorName[ROTATION_VECTOR] --> "oem-rotation-vector"
- * virtualSensorName[LINEAR_ACCELERATION] --> "oem-linear-acceleration"
- * virtualSensorName[GRAVITY] --> "oem-gravity"
- * virtualSensorName[POCKET] --> "oem-pocket"
- */
-
 #include "NativeSensorManager.h"
 
 ANDROID_SINGLETON_STATIC_INSTANCE(NativeSensorManager);
@@ -54,7 +44,7 @@ char NativeSensorManager::virtualSensorName[VIRTUAL_SENSOR_COUNT][SYSFS_MAXLEN];
 
 const struct sensor_t NativeSensorManager::virtualSensorList [VIRTUAL_SENSOR_COUNT] = {
 	[ORIENTATION] = {
-		.name = "oem-orientation",
+		.name = virtualSensorName[ORIENTATION],
 		.vendor = "oem",
 		.version = 1,
 		.handle = '_dmy',
@@ -75,7 +65,7 @@ const struct sensor_t NativeSensorManager::virtualSensorList [VIRTUAL_SENSOR_COU
 	},
 
 	[PSEUDO_GYROSCOPE] = {
-		.name = "oem-pseudo-gyro",
+		.name = virtualSensorName[PSEUDO_GYROSCOPE],
 		.vendor = "oem",
 		.version = 1,
 		.handle = '_dmy',
@@ -96,7 +86,7 @@ const struct sensor_t NativeSensorManager::virtualSensorList [VIRTUAL_SENSOR_COU
 	},
 
 	[ROTATION_VECTOR] = {
-		.name = "oem-rotation-vector",
+		.name = virtualSensorName[ROTATION_VECTOR],
 		.vendor = "oem",
 		.version = 1,
 		.handle = '_dmy',
@@ -117,7 +107,7 @@ const struct sensor_t NativeSensorManager::virtualSensorList [VIRTUAL_SENSOR_COU
 	},
 
 	[LINEAR_ACCELERATION] = {
-		.name = "oem-linear-acceleration",
+		.name = virtualSensorName[LINEAR_ACCELERATION],
 		.vendor = "oem",
 		.version = 1,
 		.handle = '_dmy',
@@ -138,7 +128,7 @@ const struct sensor_t NativeSensorManager::virtualSensorList [VIRTUAL_SENSOR_COU
 	},
 
 	[GRAVITY] = {
-		.name = "oem-gravity",
+		.name = virtualSensorName[GRAVITY],
 		.vendor = "oem",
 		.version = 1,
 		.handle = '_dmy',
@@ -159,7 +149,7 @@ const struct sensor_t NativeSensorManager::virtualSensorList [VIRTUAL_SENSOR_COU
 	},
 
 	[POCKET] = {
-		.name = "oem-pocket",
+		.name = virtualSensorName[POCKET],
 		.vendor = "oem",
 		.version = 1,
 		.handle = '_dmy',

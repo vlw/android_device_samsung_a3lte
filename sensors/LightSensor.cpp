@@ -33,8 +33,7 @@
 /*****************************************************************************/
 
 enum input_device_name {
-	LTR559_LS = 0,
-	GENERIC_LS,
+	GENERIC_LS = 0,
 	LIGHTSENSOR_LEVEL,
 	CM36283_LS,
 	STK3x1x_LS,
@@ -47,7 +46,6 @@ enum {
 };
 
 static const char *data_device_name[SUPPORTED_LSENSOR_COUNT] = {
-	[LTR559_LS] = "ltr559-ls",
 	[GENERIC_LS] = "light",
 	[LIGHTSENSOR_LEVEL] = "lightsensor-level",
 	[CM36283_LS] = "cm36283-ls",
@@ -56,7 +54,6 @@ static const char *data_device_name[SUPPORTED_LSENSOR_COUNT] = {
 
 static const char *input_sysfs_path_list[SUPPORTED_LSENSOR_COUNT] = {
 	/* This one is for back compatibility, we don't need it for generic HAL.*/
-	[LTR559_LS] = "/sys/class/input/%s/device/",
 	[GENERIC_LS] = "/sys/class/input/%s/device",
 	[LIGHTSENSOR_LEVEL] = "/sys/class/input/%s/device/",
 	[CM36283_LS] = "/sys/class/input/%s/device/",
@@ -64,7 +61,6 @@ static const char *input_sysfs_path_list[SUPPORTED_LSENSOR_COUNT] = {
 };
 
 static const char *input_sysfs_enable_list[SUPPORTED_LSENSOR_COUNT] = {
-	[LTR559_LS] = "enable_als_sensor",
 	[GENERIC_LS] = "enable",
 	[LIGHTSENSOR_LEVEL] = "enable",
 	[CM36283_LS] = "enable",
@@ -72,7 +68,6 @@ static const char *input_sysfs_enable_list[SUPPORTED_LSENSOR_COUNT] = {
 };
 
 static const int input_report_type[SUPPORTED_LSENSOR_COUNT] = {
-	[LTR559_LS] = TYPE_LUX,
 	[GENERIC_LS] = TYPE_LUX,
 	[LIGHTSENSOR_LEVEL] = TYPE_ADC,
 	[CM36283_LS] = TYPE_LUX,

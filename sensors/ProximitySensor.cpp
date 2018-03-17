@@ -22,10 +22,9 @@
 #include <poll.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <stdlib.h>
 #include <sys/select.h>
 #include <cutils/log.h>
-//add by yanfei for calibration fuction 20140728
-#include <stdlib.h>
 #include <cutils/properties.h>
 
 #include "ProximitySensor.h"
@@ -35,48 +34,41 @@
 
 #define PROXIMITY_THRESHOLD                    5.0f
 
-#define CROSSTALK_DEFAULT       100
-
 #define ARRAY	3
-//modified by yanfei for calibration fuction 20140728 begin
+
+#define CROSSTALK_DEFAULT	100
+
 static int cross;
+
 /*****************************************************************************/
 
 enum input_device_name {
-    LTR559_PS = 0,
-    GENERIC_PSENSOR,
+    GENERIC_PSENSOR = 0,
     LEGACY_PSENSOR,
     CM36283_PS,
-    PS_CROSSTALK,
     CALIBRATE,
     SUPPORTED_PSENSOR_COUNT,
 };
 
 static const char *data_device_name[SUPPORTED_PSENSOR_COUNT] = {
-   [LTR559_PS] = "ltr559-ps",
    [GENERIC_PSENSOR] = "proximity",
     [LEGACY_PSENSOR] = "proximity",
         [CM36283_PS] = "cm36283-ps",
-      [PS_CROSSTALK] = "proximity",
          [CALIBRATE] = "ap3426-proximity",
 };
 
 static const char *input_sysfs_path_list[SUPPORTED_PSENSOR_COUNT] = {
    /* This is not used by generic HAL. Just for back compatibility */
-         [LTR559_PS] = "/sys/class/input/%s/device/",
    [GENERIC_PSENSOR] = "/sys/class/input/%s/device/",
     [LEGACY_PSENSOR] = "/sys/class/input/%s/device/",
         [CM36283_PS] = "/sys/class/input/%s/device/",
-      [PS_CROSSTALK] = "/sys/class/input/%s/device/",
-      [CALIBRATE] = "/sys/class/sensors/%s",
+         [CALIBRATE] = "/sys/class/sensors/%s",
 };
 
 static const char *input_sysfs_enable_list[SUPPORTED_PSENSOR_COUNT] = {
-         [LTR559_PS] = "enable",
    [GENERIC_PSENSOR] = "enable",
     [LEGACY_PSENSOR] = "enable",
         [CM36283_PS] = "enable",
-      [PS_CROSSTALK] = "ps_crosstalk",
          [CALIBRATE] = "calibrate",
 };
 
@@ -85,22 +77,24 @@ int read_persist_prox_avg(void)
 	FILE* stream;
 	char prox_val[20];
 
+	stream = fopen("/persist/prox_avg", "r");
 
-
-	stream = fopen("/persist/prox_avg","r");
-	if(stream == NULL)
-	{	
-//modified by yanfei for crosstalk 20150316
-		cross=850;
+	if (stream == NULL) {
+		cross = 850;
 		ALOGE("prox_avg read error");
 		return -1;
 	}
-	fread(prox_val,1,sizeof(prox_val),stream);
+
+	fread(prox_val, 1, sizeof(prox_val), stream);
+
 	fclose(stream);
+
 	cross = atoi(prox_val);
+
+	ALOGI("cross = %d", cross);
 	return 0;
 }
-//modified by yanfei for calibration fuction 20140728 end
+
 ProximitySensor::ProximitySensor()
     : SensorBase(NULL, NULL),
       mInputReader(4),
@@ -133,8 +127,7 @@ ProximitySensor::ProximitySensor()
             snprintf(input_sysfs_path, sizeof(input_sysfs_path),
                             input_sysfs_path_list[i], input_name);
         input_sysfs_path_len = strlen(input_sysfs_path);
-        // Del by yanwenlong for fastmmi test. (general) 2014-6-27
-        //enable(0, 1);
+        enable(0, 1);
     }
 
     ALOGI("The proximity sensor path is %s",input_sysfs_path);
@@ -150,13 +143,13 @@ ProximitySensor::ProximitySensor(struct SensorContext *context)
         mBias(0),
         res(context->sensor->resolution)
 {
-	//modified by yanfei for calibration fuction 20140728 begin
-	int fd = -1;
-	int ret;
-	mPendingEvent.version = sizeof(sensors_event_t);
-	mPendingEvent.sensor = context->sensor->handle;
-	mPendingEvent.type = SENSOR_TYPE_PROXIMITY;
-	memset(mPendingEvent.data, 0, sizeof(mPendingEvent.data));
+        int fd = -1;
+        int ret;
+
+        mPendingEvent.version = sizeof(sensors_event_t);
+        mPendingEvent.sensor = context->sensor->handle;
+        mPendingEvent.type = SENSOR_TYPE_PROXIMITY;
+        memset(mPendingEvent.data, 0, sizeof(mPendingEvent.data));
 
         struct cal_cmd_t para;
         struct cal_result_t cal_result;
@@ -164,6 +157,7 @@ ProximitySensor::ProximitySensor(struct SensorContext *context)
         data_fd = context->data_fd;
         strlcpy(input_sysfs_path, context->enable_path, sizeof(input_sysfs_path));
         input_sysfs_path_len = strlen(input_sysfs_path);
+
         strlcpy(&input_sysfs_path[input_sysfs_path_len], input_sysfs_enable_list[CALIBRATE],
                         sizeof(input_sysfs_path) - input_sysfs_path_len);
         fd = open(input_sysfs_path, O_RDWR);
@@ -217,8 +211,7 @@ ProximitySensor::ProximitySensor(char *name)
                 strlcat(input_sysfs_path, "/", sizeof(input_sysfs_path));
                 input_sysfs_path_len = strlen(input_sysfs_path);
                 ALOGI("The proximity sensor path is %s",input_sysfs_path);
-		// Del by yanwenlong for fastmmi test. (general) 2014-6-27
-        //enable(0, 1);
+                enable(0, 1);
         }
 }
 ProximitySensor::~ProximitySensor() {
@@ -506,7 +499,8 @@ int ProximitySensor::setCalibrateValue(int fd, uint32_t value)
         int ret;
         uint32_t data;
         char buf[15]; // max unsigned 32 bit is 10 digit long
-        //Set bias high 16 bits
+
+        // Set bias high 16 bits
         data = SET_CMD_H(value, CMD_W_BIAS);
         snprintf(buf, sizeof(buf), "%u", data);
         ret = write(fd, buf, strlen(buf) + 1);
