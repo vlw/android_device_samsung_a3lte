@@ -27,6 +27,7 @@
 #include <hardware/sensors.h>
 #include <CalibrationManager.h>
 #include <sensors_extension.h>
+#include <utils/SystemClock.h>
 
 /*****************************************************************************/
 
@@ -48,9 +49,11 @@ protected:
 	int input_sysfs_path_len;
 	int mEnabled;
 	int mHasPendingMetadata;
+	int64_t sysclk_sync_offset;
 
 	int openInput(const char* inputName);
 	static int64_t getTimestamp();
+	static int64_t getClkOffset();
 
 
 	static int64_t timevalToNano(timeval const& t) {

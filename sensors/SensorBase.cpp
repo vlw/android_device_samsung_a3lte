@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, 2016 The Linux Foundation. All rights reserved.
  * Not a Contribution.
  * Copyright (C) 2008 The Android Open Source Project
  *
@@ -106,6 +106,10 @@ int64_t SensorBase::getTimestamp() {
     return int64_t(t.tv_sec)*1000000000LL + t.tv_nsec;
 }
 
+int64_t SensorBase::getClkOffset() {
+    return (getTimestamp() - android::elapsedRealtimeNano());
+}
+
 int SensorBase::openInput(const char* inputName) {
     int fd = -1;
     const char *dirname = "/dev/input";
@@ -117,7 +121,7 @@ int SensorBase::openInput(const char* inputName) {
     if(dir == NULL)
         return -1;
     strlcpy(devname, dirname, PATH_MAX);
-    filename = devname + strlen(devname);
+    filename = devname + strlen(dirname);
     *filename++ = '/';
     while((de = readdir(dir))) {
         if(de->d_name[0] == '.' &&
@@ -209,7 +213,7 @@ int SensorBase::flush(int32_t handle)
          */
 
         /* Should return -EINVAL if the sensor is not enabled */
-        if ((!mEnabled) || (ctx == NULL)) {
+        if ((!mEnabled) || (ctx == NULL) || (ctx->sensor->flags & SENSOR_FLAG_ONE_SHOT_MODE)) {
                 ALOGE("handle:%d mEnabled:%d ctx:%p\n", handle, mEnabled, ctx);
                 return -EINVAL;
         }

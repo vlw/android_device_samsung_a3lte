@@ -15,6 +15,7 @@
  */
 
 #include <stdint.h>
+#include <string.h>
 #include <errno.h>
 #include <unistd.h>
 #include <poll.h>
@@ -25,7 +26,6 @@
 #include <linux/input.h>
 
 #include <cutils/log.h>
-#include <string.h>
 
 #include "InputEventReader.h"
 
