@@ -1,2 +1,0 @@
-# Wifi
-TARGET_PROVIDES_WCNSS_QMI := true
