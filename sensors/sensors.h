@@ -100,11 +100,8 @@ __BEGIN_DECLS
 /* The hardware sensor type supported by HAL */
 #define SUPPORTED_SENSORS_TYPE	( \
 		(1ULL << SENSOR_TYPE_ACCELEROMETER) | \
-		(1ULL << SENSOR_TYPE_MAGNETIC_FIELD) | \
 		(1ULL << SENSOR_TYPE_PROXIMITY) | \
-		(1ULL << SENSOR_TYPE_LIGHT) | \
-		(1ULL << SENSOR_TYPE_GYROSCOPE ) | \
-		(1ULL << SENSOR_TYPE_PRESSURE))
+		(1ULL << SENSOR_TYPE_LIGHT))
 
 
 /*****************************************************************************/
