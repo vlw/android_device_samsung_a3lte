@@ -1,3 +1,2 @@
-#============= system_server ==============
 allow system_server sensors_persist_file:dir search;
 allow system_server sensors_persist_file:file r_file_perms;
