@@ -18,9 +18,6 @@ ro.sf.lcd_density=320
 # Factory reset protection
 ro.frp.pst=/dev/block/bootdevice/by-name/frp
 
-# HWUI
-ro.hwui.text_large_cache_height=2048
-
 # Perf
 ro.sys.fw.dex2oat_thread_count=4
 
