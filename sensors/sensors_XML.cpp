@@ -34,6 +34,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <private/android_filesystem_config.h>
+#include <string.h>
 
 #define SENSOR_XML_ROOT_ELEMENT "sensors"
 
