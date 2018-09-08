@@ -51,13 +51,6 @@ PRODUCT_PACKAGES += \
     android.hardware.camera.provider@2.4-impl \
     camera.device@1.0-impl
 
-# Dalvik
-PRODUCT_PROPERTY_OVERRIDES += \
-    dalvik.vm.heapgrowthlimit=128m \
-    dalvik.vm.heapminfree=6m \
-    dalvik.vm.heapstartsize=14m
-$(call inherit-product, frameworks/native/build/phone-xhdpi-1024-dalvik-heap.mk)
-
 # Display
 PRODUCT_PACKAGES += \
     libjni_livedisplay \
