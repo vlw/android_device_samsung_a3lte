@@ -33,7 +33,7 @@
 #define WCNSS_GENMAC_FILE "/persist/.genmac"
 #endif
 
-#define WCNSS_MAC_FILE "/persist/wlan_mac.bin"
+#define WCNSS_MAC_FILE "/efs/wifi/.mac.info"
 
 #ifndef WCNSS_INVALID_MAC_PREFIX
 #define WCNSS_INVALID_MAC_PREFIX "3c9157"
