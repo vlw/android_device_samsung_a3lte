@@ -17,8 +17,6 @@ dalvik.vm.heapminfree=512k
 dalvik.vm.heapmaxfree=8m
 
 # Display
-config.svi.path=/system/etc/svi_config.xml
-config.svi.xml=1
 ro.qualcomm.cabl=0
 ro.qualcomm.svi=1
 ro.sf.lcd_density=240

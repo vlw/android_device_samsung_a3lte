@@ -53,9 +53,7 @@ PRODUCT_PACKAGES += \
 
 # Display
 PRODUCT_PACKAGES += \
-    libjni_livedisplay \
-    pp_calib_data_nt35521_dijing_4p7inch_hd_video_panel.xml \
-    svi_config.xml
+    libjni_livedisplay
 
 # GPS
 PRODUCT_PACKAGES += \
