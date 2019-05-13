@@ -6,6 +6,7 @@
 /boot            emmc              /dev/block/bootdevice/by-name/boot
 /recovery        emmc              /dev/block/bootdevice/by-name/recovery   flags=backup=1
 /misc            emmc              /dev/block/bootdevice/by-name/misc
-/firmware        vfat              /dev/block/bootdevice/by-name/modem      flags=mounttodecrypt;fsflags=ro;display="Firmware"
+/firmware        vfat              /dev/block/bootdevice/by-name/apnhlos      flags=mounttodecrypt;fsflags=ro;display="Firmware"
+/firmware-modem        vfat              /dev/block/bootdevice/by-name/modem      flags=mounttodecrypt;fsflags=ro;display="Modem"
 
 /external_sd     vfat              /dev/block/mmcblk1p1 /dev/block/mmcblk1  flags=removable;storage;wipeingui;display="Micro SDCard"
