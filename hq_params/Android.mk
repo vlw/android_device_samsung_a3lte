@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-ifeq ($(TARGET_DEVICE),jalebi)
+ifeq ($(TARGET_DEVICE),a3lte)
 
 LOCAL_PATH := $(call my-dir)
 

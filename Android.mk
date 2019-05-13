@@ -15,7 +15,7 @@
 
 LOCAL_PATH := $(call my-dir)
 
-ifeq ($(TARGET_DEVICE), jalebi)
+ifeq ($(TARGET_DEVICE), a3lte)
 
 include $(call all-makefiles-under,$(LOCAL_PATH))
 

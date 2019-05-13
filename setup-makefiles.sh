@@ -18,8 +18,8 @@
 
 set -e
 
-DEVICE=jalebi
-VENDOR=yu
+DEVICE=a3lte
+VENDOR=samsung
 
 INITIAL_COPYRIGHT_YEAR=2015
 

@@ -1,5 +1,5 @@
-Device configuration for Yu Yunique (jalebi)
+Device configuration for Samsung Galaxy A3 (a3lte)
 ==============================
 This device tree supports:
 
-    jalebi
+    a3lte (a3ltexx)

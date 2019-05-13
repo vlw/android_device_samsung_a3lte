@@ -18,18 +18,15 @@
 FORCE_32_BIT := true
 
 # Inherit from msm8916-common
-include device/cyanogen/msm8916-common/BoardConfigCommon.mk
+include device/samsung/msm8916-common/BoardConfigCommon.mk
 
-DEVICE_PATH := device/yu/jalebi
-
-# Assertions
-TARGET_BOARD_INFO_FILE := $(DEVICE_PATH)/board-info.txt
+DEVICE_PATH := device/samsung/a3lte
 
 # Bluetooth
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(DEVICE_PATH)/bluetooth
 
 # Camera
-BOARD_CAMERA_SENSORS := ov8865_qtech_baly_6c gc2355_blx_ffln_78
+BOARD_CAMERA_SENSORS := imx219 s5k5e3yx
 USE_DEVICE_SPECIFIC_CAMERA := true
 
 # Filesystem
@@ -84,4 +81,4 @@ TARGET_PROVIDES_KEYMASTER := true
 TARGET_PROVIDES_LIBLIGHT := true
 
 # Inherit from proprietary files
-include vendor/yu/jalebi/BoardConfigVendor.mk
+#include vendor/samsung/a3lte/BoardConfigVendor.mk
