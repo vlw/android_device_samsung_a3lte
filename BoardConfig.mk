@@ -61,9 +61,6 @@ ifeq ($(WITH_TWRP),true)
 include $(DEVICE_PATH)/twrp.mk
 endif
 
-# Wi-Fi
-TARGET_PROVIDES_WCNSS_QMI := true
-
 #Light
 TARGET_PROVIDES_LIBLIGHT := true
 

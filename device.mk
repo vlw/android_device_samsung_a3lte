@@ -104,17 +104,9 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     ro.usb.id.ums_adb=3010 \
     ro.usb.vid=2a96
 
-# Wi-Fi
-PRODUCT_PACKAGES += \
-    libwcnss_qmi
-
 # KeyStore
 PRODUCT_PACKAGES += \
     keystore.qcom
-
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/wifi/WCNSS_cfg.dat:$(TARGET_COPY_OUT_VENDOR)/firmware/wlan/prima/WCNSS_cfg.dat \
-    $(LOCAL_PATH)/wifi/WCNSS_qcom_wlan_nv.bin:$(TARGET_COPY_OUT_VENDOR)/firmware/wlan/prima/WCNSS_qcom_wlan_nv.bin
 
 # Call the proprietary setup
 #$(call inherit-product, vendor/samsung/a3lte/a3lte-vendor.mk)
