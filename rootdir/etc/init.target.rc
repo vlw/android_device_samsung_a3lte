@@ -30,6 +30,8 @@ on boot
     # Torch
     chown system camera /sys/class/leds/torch-light/brightness
     chmod 0660 /sys/class/leds/torch-light/brightness
+    chown system /sys/class/sec/sec_touchkey/brightness
+    chmod 0666 /sys/class/sec/sec_touchkey/brightness
 
     # charger
     chown root system /sys/class/power_supply/bms/current_now
