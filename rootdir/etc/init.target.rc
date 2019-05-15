@@ -27,6 +27,10 @@
 
 on boot
 
+    # SEC NFC
+    chmod 0660 /dev/sec-nfc
+    chown nfc nfc /dev/sec-nfc
+
     # Torch
     chown system camera /sys/class/leds/torch-light/brightness
     chmod 0660 /sys/class/leds/torch-light/brightness

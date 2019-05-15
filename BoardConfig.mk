@@ -64,4 +64,4 @@ endif
 TARGET_PROVIDES_LIBLIGHT := true
 
 # Inherit from proprietary files
-#include vendor/samsung/a3lte/BoardConfigVendor.mk
+include vendor/samsung/a3lte/BoardConfigVendor.mk
