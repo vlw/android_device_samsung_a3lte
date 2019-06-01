@@ -22,6 +22,10 @@ include device/samsung/msm8916-common/BoardConfigCommon.mk
 
 DEVICE_PATH := device/samsung/a3lte
 
+# Audio
+USE_CUSTOM_MIXER_PATHS := true
+USE_CUSTOM_AUDIO_PLATFORM_INFO := true
+
 # Bluetooth
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(DEVICE_PATH)/bluetooth
 
