@@ -56,6 +56,8 @@ TARGET_HAS_NO_POWER_STATS := true
 # Properties
 TARGET_SYSTEM_PROP += $(DEVICE_PATH)/system.prop
 
+TARGET_RELEASETOOLS_EXTENSIONS := device/samsung/a3lte/releasetools
+
 # Recovery
 TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/rootdir/etc/fstab.qcom
 
