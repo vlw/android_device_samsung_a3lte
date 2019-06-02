@@ -100,13 +100,6 @@ PRODUCT_PACKAGES += \
 	android.hardware.nfc@1.0-service \
     vendor.samsung.hardware.nfc@1.0-service.rc
 
-# Sensors
-PRODUCT_PACKAGES += \
-    sensors.msm8916
-
-PRODUCT_PACKAGES += \
-    android.hardware.sensors@1.0-impl
-
 # USB ID
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     ro.usb.id.midi=90BA \
