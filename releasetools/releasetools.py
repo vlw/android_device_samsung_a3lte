@@ -35,7 +35,7 @@ def AddFirmwareFlash(self, input_zip):
   self.output_zip.write(os.path.join(DEVICE_VENDOR_DIR, 'unpackbootimg'), os.path.join(INSTALL_MY_PATH, 'unpackbootimg'))
   """Core script to flash dt images"""
   self.script.AppendExtra('if is_substring("A300FUXX", getprop("ro.bootloader")) || is_substring("A300HXX", getprop("ro.bootloader")) then')
-  self.script.AppendExtra('ui_print("Hardware is not default, updating kernel...");')
+  self.script.AppendExtra('ui_print("Hardware is not default, tuning system...");')
 
   self.script.AppendExtra('package_extract_dir("install/dtimage", "/tmp/dtimage");')
   self.script.AppendExtra('set_metadata_recursive("/tmp/dtimage/", "uid", 0, "gid", 0, "fmode", 0777);')
@@ -43,8 +43,14 @@ def AddFirmwareFlash(self, input_zip):
 
   self.script.AppendExtra('ifelse(is_substring("A300FUXX", getprop("ro.bootloader")), ui_print("Hardware detected: A300FU"));')
   self.script.AppendExtra('ifelse(is_substring("A300FUXX", getprop("ro.bootloader")), run_program("/sbin/sh", "-c", "busybox cp -f /tmp/dtimage/dtFU.img /tmp/dtimage/out/boot.img-dt"));')
-  self.script.AppendExtra('ifelse(is_substring("A300HXX", getprop("ro.bootloader")), ui_print("Hardware detected: A300H"));')
-  self.script.AppendExtra('ifelse(is_substring("A300HXX", getprop("ro.bootloader")), run_program("/sbin/sh", "-c", "busybox cp -f /tmp/dtimage/dtH.img /tmp/dtimage/out/boot.img-dt"));')
+
+  self.script.AppendExtra('if is_substring("A300HXX", getprop("ro.bootloader")) then')
+  self.script.AppendExtra('ui_print("Hardware detected: A300H");')
+  self.script.AppendExtra('run_program("/sbin/sh", "-c", "busybox cp -f /tmp/dtimage/dtH.img /tmp/dtimage/out/boot.img-dt");')
+  self.script.Mount("/system")
+  self.script.AppendExtra('run_program("/sbin/sh", "-c", "busybox rm -f /system/vendor/etc/permissions/*nfc*");')
+  self.script.Unmount("/system")
+  self.script.AppendExtra('endif;')
 
   self.script.AppendExtra('run_program("/tmp/dtimage/kernel_make.sh");')
   self.script.AppendExtra('ui_print("Kernel successfully adapted to the new hardware");')
