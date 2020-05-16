@@ -45,6 +45,9 @@ PRODUCT_COPY_FILES += \
 
 PRODUCT_PACKAGES += audio_amplifier.msm8916
 
+# Shipping API level
+$(call inherit-product, $(SRC_TARGET_DIR)/product/product_launched_with_k.mk)
+
 # Boot animation
 TARGET_SCREEN_HEIGHT := 960
 TARGET_SCREEN_WIDTH := 540
