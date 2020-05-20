@@ -76,6 +76,9 @@ static int amp_enable_output_devices(amplifier_device_t *device,
 
     ALOGV("%s: devices=0x%x, enable=%d, tfa_mode=%d", __func__, devices, enable, tfa_mode);
 
+    //mode 0 - default speaker
+    //mode 2 - incall
+
     //mode set
     if (tfa_mode!=Audio_Mode_Max)
         tfa_power(dev->tfa_dev, enable);

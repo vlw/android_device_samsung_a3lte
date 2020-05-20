@@ -83,22 +83,42 @@ static int tfa_clock_on(tfa_device_t *tfa_dev)
 */
     mixer_ctl_set_value(ctl, 0, 1);
 
-    tfa_dev->pcm = pcm_open(SND_CARD, AMP_PCM_DEV, PCM_OUT | PCM_MONOTONIC, &amp_pcm_config);
+    usleep(50000); //0.05s
+
+    if (tfa_dev->pcm) {
+        ALOGI(" [CLOCK] Closing existent PCM...");
+        pcm_close(tfa_dev->pcm);
+        tfa_dev->pcm = NULL;
+    }
     if (!tfa_dev->pcm) {
-        ALOGE("Failed to open pcm! (incorrect parameters?)");
+        ALOGI(" [CLOCK] Open new PCM...");
+        tfa_dev->pcm = pcm_open(SND_CARD, AMP_PCM_DEV, PCM_OUT | PCM_MONOTONIC, &amp_pcm_config);
+        ALOGI(" [CLOCK] Open new PCM done");
+    }
+    if (!tfa_dev->pcm) {
+        ALOGE(" [CLOCK] Failed to open pcm! (incorrect parameters?)");
         return -EPERM;
     }
-    if (!pcm_is_ready(tfa_dev->pcm)) {
-        ALOGE("Failed to open pcm device: %s", pcm_get_error(tfa_dev->pcm));
-        pcm_close(tfa_dev->pcm);
-        return -EBUSY;
+
+    usleep(50000); //0.05s
+
+     if (!pcm_is_ready(tfa_dev->pcm)) {
+        ALOGE(" [CLOCK] Failed to open pcm device: %s", pcm_get_error(tfa_dev->pcm));
+        if (errno != EBUSY) {
+            pcm_close(tfa_dev->pcm);
+            tfa_dev->pcm = NULL;
+            return -EIO;
+        }
     }
+
+    ALOGI(" [CLOCK] Opened pcm thread!");
 
     size = 1024 * 8;
     buffer = calloc(1, size);
     if (!buffer) {
         ALOGE("%s: failed to allocate buffer", __func__);
         pcm_close(tfa_dev->pcm);
+        tfa_dev->pcm = NULL;
         return -EBUSY;
     }
 
@@ -122,9 +142,13 @@ static int tfa_clock_off(tfa_device_t *tfa_dev)
         return 0;
     }
 
-    pcm_close(tfa_dev->pcm);
+    if (tfa_dev->pcm) {
+        ALOGI(" [CLOCK] Closing existent PCM...");
+        pcm_close(tfa_dev->pcm);
+        tfa_dev->pcm = NULL;
+    }
 
-    usleep(100000); //0.1s
+    usleep(50000); //0.05s
 
     ctl = mixer_get_ctl_by_name(tfa_dev->mixer, AMP_MIXER_CTL);
     if (ctl == NULL) {
@@ -679,7 +703,7 @@ int tfa_power(tfa_device_t *tfa_dev, bool on) {
         ALOGV("%s: amplifier device already disabled!", __func__);
         goto pwr_end;
     }
-    
+
     tfa_clock_on(tfa_dev);
 
     if (on) {
@@ -725,9 +749,9 @@ int tfa_power(tfa_device_t *tfa_dev, bool on) {
             tfa_status_read(tfa_dev);
             usleep(10000); //0.01s
             ++retries;
-        } while ((tfa_dev->status.flag[0]!=0xd0) && retries<=200);
+        } while ((tfa_dev->status.flag[0]!=0xd0) && retries<=100);
 
-        if (retries>200) {
+        if (retries>100) {
             ALOGE(" [POWERON] Timeout waiting for start amplifier! Maybe it's unconfigured. Please, send full logcat to developer!");
             ALOGE(" [POWERON] DEBUG: Tries count: %d", retries);
             tfa_status_log(tfa_dev);
@@ -823,6 +847,7 @@ tfa_device_t * tfa_device_open() {
     }
 
     tfa_dev->clock_enabled = false;
+    tfa_dev->pcm = NULL;
     tfa_dev->enabled = false;
 
     tfa_clock_on(tfa_dev);
