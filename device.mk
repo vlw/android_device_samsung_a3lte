@@ -94,6 +94,10 @@ PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.nfc.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.nfc.xml \
     frameworks/native/data/etc/android.hardware.nfc.hce.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.nfc.hce.xml
 
+# NFC
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.nfc.fw_dl_on_boot=false
+
 PRODUCT_PACKAGES += \
 	libnfc-nci \
 	libnfc_nci_jni \
