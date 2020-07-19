@@ -29,7 +29,11 @@
 
 #include <init_msm8916.h>
 
-void init_target_properties(void)
+#include <stdlib.h>
+#include <android-base/strings.h>
+#include <android-base/properties.h>
+
+void vendor_load_properties(void)
 {
 	char *device = NULL;
 	char *model = NULL;
