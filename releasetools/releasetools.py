@@ -52,7 +52,7 @@ def AddFirmwareFlash(self, input_zip):
   self.script.AppendExtra('ui_print("Hardware detected: A300H");')
   self.script.AppendExtra('run_program("/sbin/sh", "-c", "busybox cp -f /tmp/dtimage/dtH.img /tmp/dtimage/out/boot.img-dt");')
   self.script.Mount("/system")
-  self.script.AppendExtra('run_program("/sbin/sh", "-c", "busybox rm -f /system/vendor/etc/permissions/*nfc*");')
+  self.script.AppendExtra('run_program("/sbin/sh", "-c", "busybox rm -f /system/system/vendor/etc/permissions/*nfc*");')
   self.script.Unmount("/system")
   self.script.AppendExtra('endif;')
 
