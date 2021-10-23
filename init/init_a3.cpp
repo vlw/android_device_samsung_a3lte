@@ -37,52 +37,62 @@ void vendor_load_properties(void)
 {
 	char *device = NULL;
 	char *model = NULL;
+	char *name = NULL;
 
 	std::string bootloader = android::base::GetProperty("ro.bootloader", "");
 
 	if (bootloader.find("A300FU") == 0) {
-		device = (char *)"a3ultexx";
+		device = (char *)"a3ulte";
 		model = (char *)"SM-A300FU";
+		name = (char *)"a3ultexx";
 		set_lte_properties();
 	}
 	else if (bootloader.find("A300YZ") == 0) {
 		device = (char *)"a3ltezt";
 		model = (char *)"SM-A300YZ";
+		name = (char *)"a3ltezt";
 		set_lte_properties();
 	}
 	else if (bootloader.find("A3000") == 0) {
 		device = (char *)"a3ltechn";
 		model = (char *)"SM-A3000";
+		name = (char *)"a3ltezc";
 		set_lte_properties();
 	}
 	else if (bootloader.find("A3009") == 0) {
 		device = (char *)"a3ltectc";
 		model = (char *)"SM-A3009";
+		name = (char *)"a3ltectc";
 		set_lte_properties();
 	}
 	else if (bootloader.find("A300F") == 0) {
-		device = (char *)"a3ltexx";
+		device = (char *)"a3lte";
 		model = (char *)"SM-A300F";
+		name = (char *)"a3ltexx";
 		set_lte_properties();
 	}
 	else if (bootloader.find("A300H") == 0) {
 		device = (char *)"a33g";
 		model = (char *)"SM-A300H";
+		name = (char *)"a33g";
 		set_gsm_properties();
 	}
 	else if (bootloader.find("A300M") == 0) {
-		device = (char *)"a3lteub";
+		device = (char *)"a3lte";
 		model = (char *)"SM-A300M";
+		name = (char *)"a3lteub";
 		set_lte_properties();
 	}
 	else if (bootloader.find("A300G") == 0) {
-		device = (char *)"a3ltezso";
+		device = (char *)"a3ltedd";
 		model = (char *)"SM-A300G";
+		name = (char *)"a3ltezso";
 		set_lte_properties();
 	}
 	else if (bootloader.find("A300Y") == 0) {
-		device = (char *)"a3ultedv";
+		device = (char *)"a3ulte";
 		model = (char *)"SM-A300Y";
+		name = (char *)"a3ultedv";
 		set_lte_properties();
 	}
 	else {
@@ -90,5 +100,5 @@ void vendor_load_properties(void)
 	}
 
 	/* set the properties */
-	set_target_properties(device, model);
+	set_target_properties(device, model, name);
 }
