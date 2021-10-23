@@ -36,5 +36,7 @@ ro.sys.fw.dex2oat_thread_count=4
 ril.ecclist=000,08,100,101,102,110,112,118,119,120,122,911,999
 ril.ecclist1=000,08,100,101,102,110,112,118,119,120,122,911,999
 
+net.hostname=Galaxy_A3(2015)
+
 #HW keys
 qemu.hw.mainkeys=1
