@@ -15,12 +15,8 @@
 import os
 import subprocess
 
-ANDROID_BUILD_TOP = os.getenv('ANDROID_BUILD_TOP')
+DEVICE_VENDOR_DIR = os.path.join(os.environ.get('ANDROID_BUILD_TOP', ''), 'vendor', 'samsung', 'a3lte', 'dtimages')
 
-if ANDROID_BUILD_TOP is None:
-  ANDROID_BUILD_TOP = os.getenv('TOP')
-
-DEVICE_VENDOR_DIR = os.path.join(ANDROID_BUILD_TOP, 'vendor', 'samsung', 'a3lte', 'dtimages')
 INSTALL_MY_PATH = os.path.join('install', 'dtimage')
 
 def FullOTA_InstallEnd(self):
