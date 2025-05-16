@@ -18,6 +18,10 @@
 # Inherit from msm8916-common
 $(call inherit-product, device/samsung/msm8916-common/msm8916.mk)
 
+# Soong
+PRODUCT_SOONG_NAMESPACES += \
+    device/samsung/a3lte
+
 # Overlay
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 

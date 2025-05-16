@@ -1,0 +1,9 @@
+soong_namespace {
+    imports: [
+        "device/samsung/msm8916-common",
+    ],
+}
+
+subdirs = [
+    "init"
+]
