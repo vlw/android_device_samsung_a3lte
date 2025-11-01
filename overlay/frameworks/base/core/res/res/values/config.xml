@@ -29,7 +29,7 @@
          some range of adjustment to dim the screen further than usual in very
          dark rooms. The contents of the screen must still be clearly visible
          in darkness (although they may not be visible in a bright room). -->
-    <integer name="config_screenBrightnessDark">10</integer>
+    <integer name="config_screenBrightnessDark">8</integer>
 
     <!-- Flag indicating whether we should enable the automatic brightness in Settings.
                   config_hardware_automatic_brightness_available is not set, so we will use software implementation -->
@@ -76,19 +76,19 @@
          The brightness values must be between 0 and 255 and be non-decreasing.
          This must be overridden in platform specific overlays -->
     <integer-array name="config_autoBrightnessLcdBacklightValues">
-        <item>7</item>
-        <item>10</item>
-        <item>16</item>
-        <item>29</item>
-        <item>48</item>
-        <item>80</item>
-        <item>126</item>
-        <item>181</item>
-        <item>211</item>
-        <item>232</item>
-        <item>255</item>
-        <item>255</item>
-        <item>255</item>
+        <item>8</item>     <!-- ≤0 lux -->
+        <item>11</item>    <!-- 0–5 lux -->
+        <item>17</item>    <!-- 5–25 lux -->
+        <item>30</item>    <!-- 25–50 lux -->
+        <item>50</item>    <!-- 50–100 lux -->
+        <item>82</item>    <!-- 100–200 lux -->
+        <item>128</item>   <!-- 200–300 lux -->
+        <item>182</item>   <!-- 300–500 lux -->
+        <item>212</item>   <!-- 500–750 lux -->
+        <item>233</item>   <!-- 750–1000 lux -->
+        <item>240</item>   <!-- 1000–1500 lux -->
+        <item>250</item>   <!-- 1500–2000 lux -->
+        <item>255</item>   <!-- >2000 lux -->
     </integer-array>
 
     <!--  Whether Multiuser UI should be shown -->
