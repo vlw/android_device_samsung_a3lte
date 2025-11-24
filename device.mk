@@ -122,9 +122,5 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     ro.usb.id.ums_adb=3010 \
     ro.usb.vid=2a96
 
-# KeyStore
-PRODUCT_PACKAGES += \
-    keystore.qcom
-
 # Call the proprietary setup
 $(call inherit-product, vendor/samsung/a3lte/a3lte-vendor.mk)
