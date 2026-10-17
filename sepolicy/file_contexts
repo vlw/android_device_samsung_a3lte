@@ -1,3 +1,6 @@
 /persist/wlan_mac\.bin                               u:object_r:wifi_data_file:s0
 /persist/acc_avg(/.*)?                               u:object_r:sensors_persist_file:s0
 /persist/prox_avg(/.*)?                              u:object_r:sensors_persist_file:s0
+
+# NFC
+/(vendor|system/vendor)/bin/hw/vendor\.samsung\.hardware\.nfc@1\.0-service u:object_r:hal_nfc_default_exec:s0

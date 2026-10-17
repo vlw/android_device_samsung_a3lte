@@ -1,4 +1,6 @@
 service sec_nfc_service /vendor/bin/hw/vendor.samsung.hardware.nfc@1.0-service
+    interface android.hardware.nfc@1.0::INfc default
+    interface vendor.samsung.hardware.nfc@1.0::ISecNfc default
     class hal
     user nfc
     group nfc
