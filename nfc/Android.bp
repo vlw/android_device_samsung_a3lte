@@ -1,0 +1,21 @@
+cc_binary {
+    name: "android.hardware.nfc@1.0-service.samsung",
+    defaults: ["hidl_defaults"],
+    relative_install_path: "hw",
+    vendor: true,
+    init_rc: ["android.hardware.nfc@1.0-service.samsung.rc"],
+    vintf_fragments: ["android.hardware.nfc@1.0-service.samsung.xml"],
+    srcs: [
+        "Nfc.cpp",
+        "service.cpp",
+    ],
+    shared_libs: [
+        "libbase",
+        "libcutils",
+        "libhardware",
+        "libhidlbase",
+        "liblog",
+        "libutils",
+        "android.hardware.nfc@1.0",
+    ],
+}

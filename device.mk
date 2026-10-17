@@ -102,7 +102,7 @@ PRODUCT_PACKAGES += \
 	NfcNci \
 	Tag \
 	com.android.nfc_extras \
-    vendor.samsung.hardware.nfc@1.0-service.rc
+	android.hardware.nfc@1.0-service.samsung
 
 # USB ID
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
