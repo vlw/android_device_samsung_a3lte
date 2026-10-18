@@ -8,6 +8,9 @@ ranks and system sources were unchanged at that stage. Subsequent native AV1/VP9
 acceleration is documented in [NATIVE_DECODERS.md](NATIVE_DECODERS.md); it
 supersedes the software decoder throughput below.
 
+Device capability policy and measured rates for every ordinary video component
+are now configured; see [CODEC_LIMITS.md](CODEC_LIMITS.md).
+
 ## Results
 
 Android exposes 24 non-alias video components: 12 ordinary decoders, 10 encoders,

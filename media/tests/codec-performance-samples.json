@@ -1,0 +1,1009 @@
+{
+  "date": "2026-10-19",
+  "device": "SM-A300FU",
+  "firmware": "VIDEO.VE.1.8-00155",
+  "method": "unpaced Surface decode/encode; frame count, timestamps and EOS checked; no Java pixel comparison",
+  "rounding": "floor both endpoints to integer fps",
+  "boot_id": "231035ee-e1b3-4107-a4f8-e20212462d92",
+  "samples": [
+    {
+      "codec": "c2.android.avc.decoder",
+      "encoder": false,
+      "width": 1280,
+      "height": 720,
+      "frames": 90,
+      "fps": 47.38,
+      "source": "limits/performance-results.json#0",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.avc.decoder",
+        "/data/local/tmp/a3-video/h264-1280x720.mp4",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "c2.android.avc.decoder",
+      "encoder": false,
+      "width": 1920,
+      "height": 1080,
+      "frames": 90,
+      "fps": 22.81,
+      "source": "limits/performance-results.json#1",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.avc.decoder",
+        "/data/local/tmp/a3-video/h264-1920x1080.mp4",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "c2.android.vp8.decoder",
+      "encoder": false,
+      "width": 1280,
+      "height": 720,
+      "frames": 90,
+      "fps": 63.04,
+      "source": "limits/performance-results.json#2",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.vp8.decoder",
+        "/data/local/tmp/a3-video/vp8-1280x720.webm",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "c2.android.vp8.decoder",
+      "encoder": false,
+      "width": 1920,
+      "height": 1080,
+      "frames": 90,
+      "fps": 33.07,
+      "source": "limits/performance-results.json#3",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.vp8.decoder",
+        "/data/local/tmp/a3-video/vp8-1920x1080.webm",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.mpeg4",
+      "encoder": false,
+      "width": 640,
+      "height": 480,
+      "frames": 180,
+      "fps": 203.51,
+      "source": "limits/performance-results.json#4",
+      "probe_args": [
+        "surface-decode",
+        "OMX.qcom.video.decoder.mpeg4",
+        "/data/local/tmp/a3-video/mpeg4-cap.mp4",
+        180,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.mpeg2",
+      "encoder": false,
+      "width": 640,
+      "height": 360,
+      "frames": 180,
+      "fps": 195.52,
+      "source": "limits/performance-results.json#5",
+      "probe_args": [
+        "surface-decode",
+        "OMX.qcom.video.decoder.mpeg2",
+        "/data/local/tmp/a3-video/mpeg2-cap.mp4",
+        180,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.h263",
+      "encoder": false,
+      "width": 352,
+      "height": 288,
+      "frames": 180,
+      "fps": 255.71,
+      "source": "limits/performance-results.json#6",
+      "probe_args": [
+        "surface-decode",
+        "OMX.qcom.video.decoder.h263",
+        "/data/local/tmp/a3-video/h263-cap.3gp",
+        180,
+        30
+      ]
+    },
+    {
+      "codec": "c2.android.mpeg4.decoder",
+      "encoder": false,
+      "width": 176,
+      "height": 144,
+      "frames": 180,
+      "fps": 287.37,
+      "source": "limits/performance-results.json#8",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.mpeg4.decoder",
+        "/data/local/tmp/a3-video/mpeg4-small-cap.mp4",
+        180,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.encoder.avc",
+      "encoder": true,
+      "width": 1920,
+      "height": 1080,
+      "frames": 180,
+      "fps": 36.51,
+      "source": "limits/performance-results.json#9",
+      "probe_args": [
+        "surface-encode",
+        "OMX.qcom.video.encoder.avc",
+        "video/avc",
+        1920,
+        1080,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-OMX.qcom.video.encoder.avc.packets"
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.encoder.vp8",
+      "encoder": true,
+      "width": 1920,
+      "height": 1080,
+      "frames": 180,
+      "fps": 36.81,
+      "source": "limits/performance-results.json#10",
+      "probe_args": [
+        "surface-encode",
+        "OMX.qcom.video.encoder.vp8",
+        "video/x-vnd.on2.vp8",
+        1920,
+        1080,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-OMX.qcom.video.encoder.vp8.packets"
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.encoder.mpeg4",
+      "encoder": true,
+      "width": 640,
+      "height": 480,
+      "frames": 180,
+      "fps": 100.15,
+      "source": "limits/performance-results.json#11",
+      "probe_args": [
+        "surface-encode",
+        "OMX.qcom.video.encoder.mpeg4",
+        "video/mp4v-es",
+        640,
+        480,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-OMX.qcom.video.encoder.mpeg4.packets"
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.encoder.h263",
+      "encoder": true,
+      "width": 352,
+      "height": 288,
+      "frames": 180,
+      "fps": 194.92,
+      "source": "limits/performance-results.json#12",
+      "probe_args": [
+        "surface-encode",
+        "OMX.qcom.video.encoder.h263",
+        "video/3gpp",
+        352,
+        288,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-OMX.qcom.video.encoder.h263.packets"
+      ]
+    },
+    {
+      "codec": "c2.android.avc.encoder",
+      "encoder": true,
+      "width": 1280,
+      "height": 720,
+      "frames": 180,
+      "fps": 12.53,
+      "source": "limits/performance-results.json#13",
+      "probe_args": [
+        "surface-encode",
+        "c2.android.avc.encoder",
+        "video/avc",
+        1280,
+        720,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-c2.android.avc.encoder.packets"
+      ]
+    },
+    {
+      "codec": "c2.android.hevc.encoder",
+      "encoder": true,
+      "width": 512,
+      "height": 512,
+      "frames": 180,
+      "fps": 10.74,
+      "source": "limits/performance-results.json#14",
+      "probe_args": [
+        "surface-encode",
+        "c2.android.hevc.encoder",
+        "video/hevc",
+        512,
+        512,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-c2.android.hevc.encoder.packets"
+      ]
+    },
+    {
+      "codec": "c2.android.vp8.encoder",
+      "encoder": true,
+      "width": 640,
+      "height": 360,
+      "frames": 180,
+      "fps": 26.73,
+      "source": "limits/performance-results.json#15",
+      "probe_args": [
+        "surface-encode",
+        "c2.android.vp8.encoder",
+        "video/x-vnd.on2.vp8",
+        640,
+        360,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-c2.android.vp8.encoder.packets"
+      ]
+    },
+    {
+      "codec": "c2.android.vp9.encoder",
+      "encoder": true,
+      "width": 640,
+      "height": 360,
+      "frames": 180,
+      "fps": 11.5,
+      "source": "limits/performance-results.json#16",
+      "probe_args": [
+        "surface-encode",
+        "c2.android.vp9.encoder",
+        "video/x-vnd.on2.vp9",
+        640,
+        360,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-c2.android.vp9.encoder.packets"
+      ]
+    },
+    {
+      "codec": "c2.android.mpeg4.encoder",
+      "encoder": true,
+      "width": 176,
+      "height": 144,
+      "frames": 180,
+      "fps": 207.58,
+      "source": "limits/performance-results.json#17",
+      "probe_args": [
+        "surface-encode",
+        "c2.android.mpeg4.encoder",
+        "video/mp4v-es",
+        176,
+        144,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-c2.android.mpeg4.encoder.packets"
+      ]
+    },
+    {
+      "codec": "c2.android.h263.encoder",
+      "encoder": true,
+      "width": 176,
+      "height": 144,
+      "frames": 180,
+      "fps": 241.63,
+      "source": "limits/performance-results.json#18",
+      "probe_args": [
+        "surface-encode",
+        "c2.android.h263.encoder",
+        "video/3gpp",
+        176,
+        144,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-c2.android.h263.encoder.packets"
+      ]
+    },
+    {
+      "codec": "c2.android.avc.decoder",
+      "encoder": false,
+      "width": 1280,
+      "height": 720,
+      "frames": 90,
+      "fps": 40.19,
+      "source": "limits/performance-results.json#19",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.avc.decoder",
+        "/data/local/tmp/a3-video/h264-1280x720.mp4",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "c2.android.avc.decoder",
+      "encoder": false,
+      "width": 1920,
+      "height": 1080,
+      "frames": 90,
+      "fps": 24.38,
+      "source": "limits/performance-results.json#20",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.avc.decoder",
+        "/data/local/tmp/a3-video/h264-1920x1080.mp4",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "c2.android.vp8.decoder",
+      "encoder": false,
+      "width": 1280,
+      "height": 720,
+      "frames": 90,
+      "fps": 64.24,
+      "source": "limits/performance-results.json#21",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.vp8.decoder",
+        "/data/local/tmp/a3-video/vp8-1280x720.webm",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "c2.android.vp8.decoder",
+      "encoder": false,
+      "width": 1920,
+      "height": 1080,
+      "frames": 90,
+      "fps": 31.93,
+      "source": "limits/performance-results.json#22",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.vp8.decoder",
+        "/data/local/tmp/a3-video/vp8-1920x1080.webm",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.mpeg4",
+      "encoder": false,
+      "width": 640,
+      "height": 480,
+      "frames": 180,
+      "fps": 185.33,
+      "source": "limits/performance-results.json#23",
+      "probe_args": [
+        "surface-decode",
+        "OMX.qcom.video.decoder.mpeg4",
+        "/data/local/tmp/a3-video/mpeg4-cap.mp4",
+        180,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.mpeg2",
+      "encoder": false,
+      "width": 640,
+      "height": 360,
+      "frames": 180,
+      "fps": 179.89,
+      "source": "limits/performance-results.json#24",
+      "probe_args": [
+        "surface-decode",
+        "OMX.qcom.video.decoder.mpeg2",
+        "/data/local/tmp/a3-video/mpeg2-cap.mp4",
+        180,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.h263",
+      "encoder": false,
+      "width": 352,
+      "height": 288,
+      "frames": 180,
+      "fps": 247.29,
+      "source": "limits/performance-results.json#25",
+      "probe_args": [
+        "surface-decode",
+        "OMX.qcom.video.decoder.h263",
+        "/data/local/tmp/a3-video/h263-cap.3gp",
+        180,
+        30
+      ]
+    },
+    {
+      "codec": "c2.android.mpeg4.decoder",
+      "encoder": false,
+      "width": 176,
+      "height": 144,
+      "frames": 180,
+      "fps": 270.07,
+      "source": "limits/performance-results.json#27",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.mpeg4.decoder",
+        "/data/local/tmp/a3-video/mpeg4-small-cap.mp4",
+        180,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.encoder.avc",
+      "encoder": true,
+      "width": 1920,
+      "height": 1080,
+      "frames": 180,
+      "fps": 36.71,
+      "source": "limits/performance-results.json#28",
+      "probe_args": [
+        "surface-encode",
+        "OMX.qcom.video.encoder.avc",
+        "video/avc",
+        1920,
+        1080,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-OMX.qcom.video.encoder.avc.packets"
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.encoder.vp8",
+      "encoder": true,
+      "width": 1920,
+      "height": 1080,
+      "frames": 180,
+      "fps": 36.89,
+      "source": "limits/performance-results.json#29",
+      "probe_args": [
+        "surface-encode",
+        "OMX.qcom.video.encoder.vp8",
+        "video/x-vnd.on2.vp8",
+        1920,
+        1080,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-OMX.qcom.video.encoder.vp8.packets"
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.encoder.mpeg4",
+      "encoder": true,
+      "width": 640,
+      "height": 480,
+      "frames": 180,
+      "fps": 99.86,
+      "source": "limits/performance-results.json#30",
+      "probe_args": [
+        "surface-encode",
+        "OMX.qcom.video.encoder.mpeg4",
+        "video/mp4v-es",
+        640,
+        480,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-OMX.qcom.video.encoder.mpeg4.packets"
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.encoder.h263",
+      "encoder": true,
+      "width": 352,
+      "height": 288,
+      "frames": 180,
+      "fps": 214.43,
+      "source": "limits/performance-results.json#31",
+      "probe_args": [
+        "surface-encode",
+        "OMX.qcom.video.encoder.h263",
+        "video/3gpp",
+        352,
+        288,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-OMX.qcom.video.encoder.h263.packets"
+      ]
+    },
+    {
+      "codec": "c2.android.avc.encoder",
+      "encoder": true,
+      "width": 1280,
+      "height": 720,
+      "frames": 180,
+      "fps": 12.59,
+      "source": "limits/performance-results.json#32",
+      "probe_args": [
+        "surface-encode",
+        "c2.android.avc.encoder",
+        "video/avc",
+        1280,
+        720,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-c2.android.avc.encoder.packets"
+      ]
+    },
+    {
+      "codec": "c2.android.hevc.encoder",
+      "encoder": true,
+      "width": 512,
+      "height": 512,
+      "frames": 180,
+      "fps": 5.98,
+      "source": "limits/performance-results.json#33",
+      "probe_args": [
+        "surface-encode",
+        "c2.android.hevc.encoder",
+        "video/hevc",
+        512,
+        512,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-c2.android.hevc.encoder.packets"
+      ]
+    },
+    {
+      "codec": "c2.android.vp8.encoder",
+      "encoder": true,
+      "width": 640,
+      "height": 360,
+      "frames": 180,
+      "fps": 26.56,
+      "source": "limits/performance-results.json#34",
+      "probe_args": [
+        "surface-encode",
+        "c2.android.vp8.encoder",
+        "video/x-vnd.on2.vp8",
+        640,
+        360,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-c2.android.vp8.encoder.packets"
+      ]
+    },
+    {
+      "codec": "c2.android.vp9.encoder",
+      "encoder": true,
+      "width": 640,
+      "height": 360,
+      "frames": 180,
+      "fps": 11.49,
+      "source": "limits/performance-results.json#35",
+      "probe_args": [
+        "surface-encode",
+        "c2.android.vp9.encoder",
+        "video/x-vnd.on2.vp9",
+        640,
+        360,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-c2.android.vp9.encoder.packets"
+      ]
+    },
+    {
+      "codec": "c2.android.mpeg4.encoder",
+      "encoder": true,
+      "width": 176,
+      "height": 144,
+      "frames": 180,
+      "fps": 220.13,
+      "source": "limits/performance-results.json#36",
+      "probe_args": [
+        "surface-encode",
+        "c2.android.mpeg4.encoder",
+        "video/mp4v-es",
+        176,
+        144,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-c2.android.mpeg4.encoder.packets"
+      ]
+    },
+    {
+      "codec": "c2.android.h263.encoder",
+      "encoder": true,
+      "width": 176,
+      "height": 144,
+      "frames": 180,
+      "fps": 249.73,
+      "source": "limits/performance-results.json#37",
+      "probe_args": [
+        "surface-encode",
+        "c2.android.h263.encoder",
+        "video/3gpp",
+        176,
+        144,
+        180,
+        30,
+        "/data/local/tmp/a3-video/cap-c2.android.h263.encoder.packets"
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.vp8",
+      "encoder": false,
+      "width": 1280,
+      "height": 720,
+      "frames": 90,
+      "fps": 85.37,
+      "source": "limits/extra-results.json#0",
+      "probe_args": [
+        "surface-decode",
+        "OMX.qcom.video.decoder.vp8",
+        "/data/local/tmp/a3-video/vp8-1280x720.webm",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.vp8",
+      "encoder": false,
+      "width": 1920,
+      "height": 1080,
+      "frames": 90,
+      "fps": 61.28,
+      "source": "limits/extra-results.json#1",
+      "probe_args": [
+        "surface-decode",
+        "OMX.qcom.video.decoder.vp8",
+        "/data/local/tmp/a3-video/vp8-1920x1080.webm",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "c2.android.hevc.decoder",
+      "encoder": false,
+      "width": 1280,
+      "height": 720,
+      "frames": 90,
+      "fps": 57.52,
+      "source": "limits/extra-results.json#2",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.hevc.decoder",
+        "/data/local/tmp/a3-video/hevc-1280x720.mp4",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "c2.android.hevc.decoder",
+      "encoder": false,
+      "width": 1920,
+      "height": 1080,
+      "frames": 90,
+      "fps": 38.04,
+      "source": "limits/extra-results.json#3",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.hevc.decoder",
+        "/data/local/tmp/a3-video/hevc-1920x1080.mp4",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.mpeg2",
+      "encoder": false,
+      "width": 1280,
+      "height": 720,
+      "frames": 180,
+      "fps": 105.86,
+      "source": "limits/extra-results.json#4",
+      "probe_args": [
+        "surface-decode",
+        "OMX.qcom.video.decoder.mpeg2",
+        "/data/local/tmp/a3-video/mpeg2-cap-1280x720.mp4",
+        180,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.mpeg2",
+      "encoder": false,
+      "width": 1920,
+      "height": 1080,
+      "frames": 180,
+      "fps": 76.91,
+      "source": "limits/extra-results.json#5",
+      "probe_args": [
+        "surface-decode",
+        "OMX.qcom.video.decoder.mpeg2",
+        "/data/local/tmp/a3-video/mpeg2-cap-1920x1080.mp4",
+        180,
+        30
+      ]
+    },
+    {
+      "codec": "c2.android.h263.decoder",
+      "encoder": false,
+      "width": 352,
+      "height": 288,
+      "frames": 180,
+      "fps": 253.25,
+      "source": "limits/extra-results.json#6",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.h263.decoder",
+        "/data/local/tmp/a3-video/h263-cap.3gp",
+        180,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.encoder.avc",
+      "encoder": true,
+      "width": 1280,
+      "height": 720,
+      "frames": 180,
+      "fps": 80.96,
+      "source": "limits/extra-results.json#7",
+      "probe_args": [
+        "surface-encode",
+        "OMX.qcom.video.encoder.avc",
+        "video/avc",
+        1280,
+        720,
+        180,
+        60,
+        "/data/local/tmp/a3-video/cap-720-OMX.qcom.video.encoder.avc.packets"
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.encoder.vp8",
+      "encoder": true,
+      "width": 1280,
+      "height": 720,
+      "frames": 180,
+      "fps": 80.56,
+      "source": "limits/extra-results.json#8",
+      "probe_args": [
+        "surface-encode",
+        "OMX.qcom.video.encoder.vp8",
+        "video/x-vnd.on2.vp8",
+        1280,
+        720,
+        180,
+        60,
+        "/data/local/tmp/a3-video/cap-720-OMX.qcom.video.encoder.vp8.packets"
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.vp8",
+      "encoder": false,
+      "width": 1280,
+      "height": 720,
+      "frames": 90,
+      "fps": 85.89,
+      "source": "limits/extra-results.json#9",
+      "probe_args": [
+        "surface-decode",
+        "OMX.qcom.video.decoder.vp8",
+        "/data/local/tmp/a3-video/vp8-1280x720.webm",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.vp8",
+      "encoder": false,
+      "width": 1920,
+      "height": 1080,
+      "frames": 90,
+      "fps": 61.35,
+      "source": "limits/extra-results.json#10",
+      "probe_args": [
+        "surface-decode",
+        "OMX.qcom.video.decoder.vp8",
+        "/data/local/tmp/a3-video/vp8-1920x1080.webm",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "c2.android.hevc.decoder",
+      "encoder": false,
+      "width": 1280,
+      "height": 720,
+      "frames": 90,
+      "fps": 64.63,
+      "source": "limits/extra-results.json#11",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.hevc.decoder",
+        "/data/local/tmp/a3-video/hevc-1280x720.mp4",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "c2.android.hevc.decoder",
+      "encoder": false,
+      "width": 1920,
+      "height": 1080,
+      "frames": 90,
+      "fps": 16.12,
+      "source": "limits/extra-results.json#12",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.hevc.decoder",
+        "/data/local/tmp/a3-video/hevc-1920x1080.mp4",
+        90,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.mpeg2",
+      "encoder": false,
+      "width": 1280,
+      "height": 720,
+      "frames": 180,
+      "fps": 105.56,
+      "source": "limits/extra-results.json#13",
+      "probe_args": [
+        "surface-decode",
+        "OMX.qcom.video.decoder.mpeg2",
+        "/data/local/tmp/a3-video/mpeg2-cap-1280x720.mp4",
+        180,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.mpeg2",
+      "encoder": false,
+      "width": 1920,
+      "height": 1080,
+      "frames": 180,
+      "fps": 77.17,
+      "source": "limits/extra-results.json#14",
+      "probe_args": [
+        "surface-decode",
+        "OMX.qcom.video.decoder.mpeg2",
+        "/data/local/tmp/a3-video/mpeg2-cap-1920x1080.mp4",
+        180,
+        30
+      ]
+    },
+    {
+      "codec": "c2.android.h263.decoder",
+      "encoder": false,
+      "width": 352,
+      "height": 288,
+      "frames": 180,
+      "fps": 256.07,
+      "source": "limits/extra-results.json#15",
+      "probe_args": [
+        "surface-decode",
+        "c2.android.h263.decoder",
+        "/data/local/tmp/a3-video/h263-cap.3gp",
+        180,
+        30
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.encoder.avc",
+      "encoder": true,
+      "width": 1280,
+      "height": 720,
+      "frames": 180,
+      "fps": 81.11,
+      "source": "limits/extra-results.json#16",
+      "probe_args": [
+        "surface-encode",
+        "OMX.qcom.video.encoder.avc",
+        "video/avc",
+        1280,
+        720,
+        180,
+        60,
+        "/data/local/tmp/a3-video/cap-720-OMX.qcom.video.encoder.avc.packets"
+      ]
+    },
+    {
+      "codec": "OMX.qcom.video.encoder.vp8",
+      "encoder": true,
+      "width": 1280,
+      "height": 720,
+      "frames": 180,
+      "fps": 80.61,
+      "source": "limits/extra-results.json#17",
+      "probe_args": [
+        "surface-encode",
+        "OMX.qcom.video.encoder.vp8",
+        "video/x-vnd.on2.vp8",
+        1280,
+        720,
+        180,
+        60,
+        "/data/local/tmp/a3-video/cap-720-OMX.qcom.video.encoder.vp8.packets"
+      ]
+    },
+    {
+      "codec": "c2.android.av1.decoder",
+      "encoder": false,
+      "width": 1280,
+      "height": 720,
+      "frames": 450,
+      "fps": 57.49,
+      "source": "optimization/dav1d-validation.json#4"
+    },
+    {
+      "codec": "c2.android.av1.decoder",
+      "encoder": false,
+      "width": 1920,
+      "height": 1080,
+      "frames": 450,
+      "fps": 29.13,
+      "source": "optimization/dav1d-validation.json#5"
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.avc",
+      "encoder": false,
+      "width": 1920,
+      "height": 1080,
+      "frames": 450,
+      "fps": 61.09,
+      "source": "optimization/dav1d-validation.json#7"
+    },
+    {
+      "codec": "c2.android.vp9.decoder",
+      "encoder": false,
+      "width": 1280,
+      "height": 720,
+      "frames": 450,
+      "fps": 62.85,
+      "source": "optimization/vp9-validation.json#3"
+    },
+    {
+      "codec": "c2.android.vp9.decoder",
+      "encoder": false,
+      "width": 1920,
+      "height": 1080,
+      "frames": 450,
+      "fps": 35.88,
+      "source": "optimization/vp9-validation.json#4"
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.avc",
+      "encoder": false,
+      "width": 1280,
+      "height": 720,
+      "frames": 900,
+      "fps": 133.43,
+      "source": "youtube/long-results.json#0"
+    },
+    {
+      "codec": "OMX.qcom.video.decoder.avc",
+      "encoder": false,
+      "width": 1920,
+      "height": 1080,
+      "frames": 450,
+      "fps": 61.41,
+      "source": "youtube/long-results.json#1"
+    }
+  ]
+}

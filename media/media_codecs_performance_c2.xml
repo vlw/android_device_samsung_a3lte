@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- SM-A300FU device policy and unpaced synthetic measurements, 2026-10-19.
+     Measured rates are estimates, not sustained/DRM performance guarantees.
+     See CODEC_LIMITS.md and tests/codec-performance-samples.json. -->
+<MediaCodecs>
+    <Decoders>
+        <MediaCodec name="c2.android.av1.decoder" type="video/av01" update="true">
+            <Limit name="frame-rate" range="1-60" />
+            <Limit name="size" min="2x2" max="1920x1920" />
+            <Limit name="block-count" range="1-8160" />
+            <Limit name="bitrate" range="1-60000000" />
+            <Limit name="measured-frame-rate-1280x720" range="57-57" />
+            <Limit name="measured-frame-rate-1920x1080" range="29-29" />
+        </MediaCodec>
+        <MediaCodec name="c2.android.avc.decoder" type="video/avc" update="true">
+            <Limit name="frame-rate" range="1-60" />
+            <Limit name="size" min="2x2" max="1920x1920" />
+            <Limit name="block-count" range="1-8160" />
+            <Limit name="bitrate" range="1-48000000" />
+            <Limit name="measured-frame-rate-1280x720" range="40-47" />
+            <Limit name="measured-frame-rate-1920x1080" range="22-24" />
+        </MediaCodec>
+        <MediaCodec name="c2.android.h263.decoder" type="video/3gpp" update="true">
+            <Limit name="frame-rate" range="1-30" />
+            <Limit name="bitrate" range="1-384000" />
+            <Limit name="measured-frame-rate-352x288" range="253-256" />
+        </MediaCodec>
+        <MediaCodec name="c2.android.hevc.decoder" type="video/hevc" update="true">
+            <Limit name="frame-rate" range="1-60" />
+            <Limit name="size" min="2x2" max="1920x1920" />
+            <Limit name="block-count" range="1-32640" />
+            <Limit name="bitrate" range="1-10000000" />
+            <Limit name="measured-frame-rate-1280x720" range="57-64" />
+            <Limit name="measured-frame-rate-1920x1080" range="16-38" />
+        </MediaCodec>
+        <MediaCodec name="c2.android.mpeg4.decoder" type="video/mp4v-es" update="true">
+            <Limit name="frame-rate" range="12-60" />
+            <Limit name="bitrate" range="1-384000" />
+            <Limit name="measured-frame-rate-176x144" range="270-287" />
+        </MediaCodec>
+        <MediaCodec name="c2.android.vp8.decoder" type="video/x-vnd.on2.vp8" update="true">
+            <Limit name="frame-rate" range="1-60" />
+            <Limit name="size" min="2x2" max="1920x1920" />
+            <Limit name="block-count" range="1-8160" />
+            <Limit name="bitrate" range="1-40000000" />
+            <Limit name="measured-frame-rate-1280x720" range="63-64" />
+            <Limit name="measured-frame-rate-1920x1080" range="31-33" />
+        </MediaCodec>
+        <MediaCodec name="c2.android.vp9.decoder" type="video/x-vnd.on2.vp9" update="true">
+            <Limit name="frame-rate" range="1-60" />
+            <Limit name="size" min="2x2" max="1920x1920" />
+            <Limit name="block-count" range="1-8160" />
+            <Limit name="bitrate" range="1-40000000" />
+            <Limit name="measured-frame-rate-1280x720" range="62-62" />
+            <Limit name="measured-frame-rate-1920x1080" range="35-35" />
+        </MediaCodec>
+    </Decoders>
+    <Encoders>
+        <MediaCodec name="c2.android.avc.encoder" type="video/avc" update="true">
+            <Limit name="frame-rate" range="1-30" />
+            <Limit name="size" min="16x16" max="1920x1920" />
+            <Limit name="block-count" range="1-8160" />
+            <Limit name="bitrate" range="1-12000000" />
+            <Limit name="measured-frame-rate-1280x720" range="12-12" />
+        </MediaCodec>
+        <MediaCodec name="c2.android.h263.encoder" type="video/3gpp" update="true">
+            <Limit name="frame-rate" range="1-30" />
+            <Limit name="bitrate" range="1-128000" />
+            <Limit name="measured-frame-rate-176x144" range="241-249" />
+        </MediaCodec>
+        <MediaCodec name="c2.android.hevc.encoder" type="video/hevc" update="true">
+            <Limit name="frame-rate" range="1-30" />
+            <Limit name="bitrate" range="1-10000000" />
+            <Limit name="measured-frame-rate-512x512" range="5-10" />
+        </MediaCodec>
+        <MediaCodec name="c2.android.mpeg4.encoder" type="video/mp4v-es" update="true">
+            <Limit name="frame-rate" range="12-30" />
+            <Limit name="bitrate" range="1-64000" />
+            <Limit name="measured-frame-rate-176x144" range="207-220" />
+        </MediaCodec>
+        <MediaCodec name="c2.android.vp8.encoder" type="video/x-vnd.on2.vp8" update="true">
+            <Limit name="frame-rate" range="1-30" />
+            <Limit name="size" min="2x2" max="1920x1920" />
+            <Limit name="block-count" range="1-8160" />
+            <Limit name="bitrate" range="1-40000000" />
+            <Limit name="measured-frame-rate-640x360" range="26-26" />
+        </MediaCodec>
+        <MediaCodec name="c2.android.vp9.encoder" type="video/x-vnd.on2.vp9" update="true">
+            <Limit name="frame-rate" range="1-30" />
+            <Limit name="size" min="2x2" max="1280x1280" />
+            <Limit name="block-count" range="1-3600" />
+            <Limit name="bitrate" range="1-30000000" />
+            <Limit name="measured-frame-rate-640x360" range="11-11" />
+        </MediaCodec>
+    </Encoders>
+</MediaCodecs>
