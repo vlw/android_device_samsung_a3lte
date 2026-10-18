@@ -8,3 +8,8 @@
 
 # NFC
 /(vendor|system/vendor)/bin/hw/android\.hardware\.nfc@1\.0-service\.samsung u:object_r:hal_nfc_default_exec:s0
+
+# This legacy ARM camera blob has text relocations. Keep the vendor label so
+# the existing mm-qcamerad vendor_file execmod rule applies on non-Treble builds.
+/system/vendor/lib/libmmcamera_faceproc\.so           u:object_r:vendor_file:s0
+/vendor/lib/libmmcamera_faceproc\.so                  u:object_r:vendor_file:s0
