@@ -372,6 +372,7 @@ class SipConnectionUdp(
             fun recvPacket() {
                 // select()
                 select(listOf(getChannel()))
+                currentDgram.length = currentDgram.data.size
                 socket.receive(currentDgram)
                 currentPosition = 0
                 currentSize = currentDgram.length
@@ -381,7 +382,7 @@ class SipConnectionUdp(
                 if (currentPosition >= currentSize) {
                     recvPacket()
                 }
-                val ret =  currentDgram.data[currentPosition++].toInt()
+                val ret = currentDgram.data[currentPosition++].toInt() and 0xff
                 return ret
             }
 
@@ -477,6 +478,7 @@ class SipConnectionUdpServer(
             fun recvPacket() {
                 // select()
                 select(listOf(getChannel()))
+                currentDgram.length = currentDgram.data.size
                 socket.receive(currentDgram)
                 currentPosition = 0
                 currentSize = currentDgram.length
@@ -486,7 +488,7 @@ class SipConnectionUdpServer(
                 if (currentPosition >= currentSize) {
                     recvPacket()
                 }
-                val ret = currentDgram.data[currentPosition++].toInt()
+                val ret = currentDgram.data[currentPosition++].toInt() and 0xff
                 return ret
             }
 

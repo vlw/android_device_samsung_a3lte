@@ -28,6 +28,19 @@ install the Android 6 Java framework or replace modem firmware.
   setting. Unregistered/stale transports fall back to circuit-switched calling.
   Normal IMS does not advertise emergency MMTEL. VoWiFi, video calling, RCS and
   IMS UT are not enabled by this integration.
+- `liba3ims_radio` forwards the existing vendor RIL unchanged and delivers AP
+  registration/capability updates through its exported IIL parsers and IMS
+  worker. The bridge also requests NAS PS-preferred voice with CS fallback.
+  A UID-checked local socket accepts only the system IMS service's small state
+  message; it never accepts arbitrary OEM or modem commands. Unknown vendor
+  ABIs disable the bridge without replacing ordinary RIL operations.
+- REGISTER refresh uses the negotiated lease, with an exact elapsed-time wakeup
+  capped at 20 minutes. The persistent application survives normal background
+  process eviction. PANI comes from the registered LTE cell; zero-filled legacy
+  PS placeholders are skipped in favor of the actual CS-domain LTE identity.
+- For A1 BY the protected UDP flow sends both requests and responses from UE
+  port-c to P-CSCF port-s, as required by TS 24.229 section 5.1.1.2.2. It must
+  not reverse the incoming UDP flow. TCP replies retain their accepted socket.
 
 ## Device verification
 
@@ -36,9 +49,22 @@ On SM-A300FU / Android 12 / A1 Belarus (25701), the network returned REGISTER
 The Android ImsMmTelManager API reported registrationState=2 (REGISTERED),
 LTE voice=true and SMS=true. Registration also recovered after an airplane-mode
 radio cycle. Turning the Android VoLTE setting off removed LTE voice
-availability; restoring the original setting restored it. No calls, SMS sends
-or microphone captures were performed. Voice
-media and actual SMS delivery therefore remain unverified.
+availability; restoring the original setting restored it.
+
+On 2026-10-18 an explicitly authorized outgoing call connected over IMS while
+remaining in LTE, negotiating EVS-SWB with RTP in both directions. A later
+outgoing also remained in LTE through ringing. This does not establish perceived
+audio quality or all operator codec modes. Incoming calls still fell back to CS
+in the subsequent tests; there was no SIP INVITE at the application. Replacing
+the RIL with the complete Android 6 dependency set did not resolve this and is
+not part of the product. After correcting protected UDP response routing,
+registration NOTIFY retransmissions stopped. Incoming validation continues;
+working outgoing IMS is not evidence of working incoming VoLTE. A full P-CSCF
+capture subsequently saw the outgoing signaling/media but no traffic at all
+during an incoming CS call (no capture drops). The phone retains BOEC modem
+firmware; the supplied Android 6 archive contains CQI1. A modem replacement was
+declined and has not been performed. This version difference is an untested
+hypothesis, not an established cause. Actual SMS delivery remains unverified.
 
 Device diagnostics are explicit tools and are not included in production
 packages: tests/LegacyPcscfTest.java checks synthetic address/interface cases;
@@ -95,4 +121,5 @@ NB/WB/SWB/FB bandwidths, all nine AMR-WB IO modes, DTX/SID, CMR and Compact /
 Header-Full RTP. Per-session constraints follow SDP negotiation and renegotiation;
 AMR-WB/AMR fallbacks retain Android MediaCodec and honor mode-set. See EVS.md
 for the verified mode matrix, protocol behavior, build/provenance and limits.
-There has been no live-call or operator-interoperability validation.
+The live outgoing result above covers EVS-SWB only; the broader mode matrix is
+synthetic validation, not evidence that every mode is accepted by the operator.

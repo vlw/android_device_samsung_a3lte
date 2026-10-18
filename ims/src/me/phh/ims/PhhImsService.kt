@@ -40,9 +40,23 @@ class PhhImsService : ImsService() {
         armPeriodicRegisterAlarm()
     }
 
-    fun armPeriodicRegisterAlarm() {
+    private var nextRegisterAlarmElapsed = 0L
+
+    @Synchronized
+    fun onPeriodicRegisterAlarm() {
+        nextRegisterAlarmElapsed = 0L
+        armPeriodicRegisterAlarm()
+    }
+
+    @Synchronized
+    fun armPeriodicRegisterAlarm(delayMs: Long = 1_200_000L) {
+        val now = SystemClock.elapsedRealtime()
+        val deadline = now + delayMs.coerceIn(1_000L, 1_200_000L)
+        // A later response on another SIM must not postpone an earlier lease.
+        if (nextRegisterAlarmElapsed > now && nextRegisterAlarmElapsed <= deadline) return
+        nextRegisterAlarmElapsed = deadline
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(receiver.ALARM_PERIODIC_REGISTER)
+        val intent = Intent(receiver.ALARM_PERIODIC_REGISTER).setPackage(packageName)
         val pendingIntent = PendingIntent.getBroadcast(
             this,
             0,
@@ -50,15 +64,16 @@ class PhhImsService : ImsService() {
             PendingIntent.FLAG_IMMUTABLE,
         )
 
-        // We want recurring 3000s but recurring alarms don't wake up from
-        // doze: alarm will re-arm itself.
-        alarmManager.setAndAllowWhileIdle(
+        // An inexact 50-minute alarm has a 37.5-minute coalescing window on
+        // Android 12 and can run after a carrier's 60-minute registration lease.
+        // Wake before the negotiated expiry, including while the screen is off.
+        alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.ELAPSED_REALTIME_WAKEUP,
-            SystemClock.elapsedRealtime() + 3_000_000,
+            deadline,
             pendingIntent,
         )
 
-        Rlog.d(TAG, "Alarm set")
+        Rlog.d(TAG, "Exact REGISTER refresh scheduled in ${deadline - now}ms")
     }
 
     // Android 12 binds features by slot. Resolve the current subscription on

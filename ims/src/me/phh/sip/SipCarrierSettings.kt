@@ -233,6 +233,13 @@ data class SipCarrierPolicy(
                     securityClientEalgs = listOf("null"),
                 )
 
+                "257001" -> defaultFor(mcc, mnc).copy(
+                    // A1 BY: verified protected UDP signaling profile.
+                    isControlSocketUdp = true,
+                    securityClientAlgs = listOf("hmac-sha-1-96"),
+                    securityClientEalgs = listOf("null"),
+                )
+
                 "208010" -> defaultFor(mcc, mnc).copy(
                     // 20810 can do TCP and UDP; force UDP for testing.
                     isControlSocketUdp = true,

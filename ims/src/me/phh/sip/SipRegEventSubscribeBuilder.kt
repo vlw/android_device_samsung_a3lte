@@ -9,6 +9,7 @@ object SipRegEventSubscribeBuilder {
         socket: SipConnection,
         serverPort: Int,
         imei: String,
+        accessNetworkInfo: String? = null,
     ): SipRequest {
         val contactTel = SipContactHeaders.mmtelContact(
             userPart = myTel,
@@ -31,7 +32,7 @@ object SipRegEventSubscribeBuilder {
                 Proxy-Require: sec-agree
                 Allow: INVITE, ACK, CANCEL, BYE, UPDATE, REFER, NOTIFY, INFO, MESSAGE, PRACK, OPTIONS
                 Accept: application/reginfo+xml
-                P-Access-Network-Info: 3GPP-E-UTRAN-FDD;utran-cell-id-3gpp=20810b8c49752501
+                ${accessNetworkInfo?.let { "P-Access-Network-Info: $it" }.orEmpty()}
                 """.toSipHeadersMap(),
         )
     }

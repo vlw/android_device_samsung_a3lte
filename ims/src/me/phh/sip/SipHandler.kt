@@ -152,7 +152,9 @@ class SipHandler(
      * failures can be correlated with the exact request/response sent.
      */
     private fun addCarrierRegisterNetworkHeaders(bytes: ByteArray): ByteArray {
-        val configuredHeaders = carrierSettings.registerExtraHeaders
+        val accessInfo = SipAccessNetworkInfo.current(subTelephonyManager)
+        val configuredHeaders = carrierSettings.registerExtraHeaders +
+            (accessInfo?.let { mapOf("p-access-network-info" to listOf(it)) } ?: emptyMap())
         if (configuredHeaders.isEmpty()) return bytes
 
         val raw = bytes.toString(Charsets.US_ASCII)
@@ -247,15 +249,15 @@ class SipHandler(
     private val inviteSessionTimerPolicy = SipInviteSessionTimerPolicy(TAG)
     private val smsFallbackPolicy = SipSmsFallbackPolicy(TAG, carrierSettings.smsPolicy)
     /*
-     * UDP SIP responses must be sent on the same 5-tuple that delivered the
-     * request. A plain ByteArrayOutputStream only works for immediate responses
-     * generated before the UDP receive loop returns; it breaks delayed dialog
-     * responses such as incoming final 200 OK and can make peers retransmit
-     * in-dialog UPDATE because the 200 OK was not delivered promptly.
+     * IMS IPsec UDP uses two unidirectional flows (TS 24.229 §5.1.1.2.2):
+     * both requests and responses leave UE port-c towards P-CSCF port-s.
+     * Reversing the incoming port-c -> port-s flow selects the wrong SA and
+     * the P-CSCF discards replies. Keep a real writer for delayed responses.
      */
     private inner class UdpSipResponseWriter(
         private val remoteAddress: InetAddress,
         private val remotePort: Int,
+        private val protectedWriter: OutputStream?,
     ) : OutputStream() {
         private val pendingSingleByteWrites = ByteArrayOutputStream()
 
@@ -283,6 +285,14 @@ class SipHandler(
 
         private fun sendDatagram(bytes: ByteArray) {
             if (bytes.isEmpty()) return
+            protectedWriter?.let {
+                synchronized(it) {
+                    it.write(bytes)
+                    it.flush()
+                }
+                Rlog.d(TAG, "UDP SIP response sent on IMS protected client flow bytes=${bytes.size}")
+                return
+            }
             val firstLine = bytes.toString(Charsets.US_ASCII)
                 .lineSequence()
                 .firstOrNull()
@@ -2123,6 +2133,8 @@ fun onWfcDisabled(reason: String) {
     }
 
     private fun startUdpServerSipReaderLoop(readerGeneration: Int) {
+        val protectedWriter = if (socket is SipConnectionUdp &&
+                ipsecSettings.serverOutTransform != null) socket.gWriter() else null
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val bufferIn = ByteArray(128 * 1024)
@@ -2134,7 +2146,8 @@ fun onWfcDisabled(reason: String) {
 
                     val baIs = ByteArrayInputStream(dgramPacketIn.data, dgramPacketIn.offset, dgramPacketIn.length)
                     val reader = baIs.sipReader()
-                    val writer = UdpSipResponseWriter(dgramPacketIn.address, dgramPacketIn.port)
+                    val writer = UdpSipResponseWriter(dgramPacketIn.address, dgramPacketIn.port,
+                        protectedWriter)
                     while (parseMessage(reader, writer)) {
                     }
 
@@ -2498,6 +2511,14 @@ fun onWfcDisabled(reason: String) {
         commonHeaders += update.headers
     }
 
+    fun refreshRegistrationIfReady() {
+        if (imsReady && !reconnectController.isReconnecting()) register()
+    }
+
+    fun retryRegistrationAfterRefreshFailure() {
+        reconnectIms("periodic REGISTER failed")
+    }
+
     fun register(_writer: OutputStream? = null) {
         RegistrationCellInfoLogger.log(TAG, subTelephonyManager)
 
@@ -2540,6 +2561,9 @@ fun onWfcDisabled(reason: String) {
         // on failure just abort thread, ims will restart
         require(response.statusCode == 200)
 
+        val refreshDelay = SipRegistrationExpiry.refreshDelayMillis(response.headers)
+        me.phh.ims.PhhImsService.instance?.armPeriodicRegisterAlarm(refreshDelay)
+
         val registeredIdentity = SipRegisterSuccessParser.parse(response)
         mySip = registeredIdentity.mySip
         myTel = registeredIdentity.myTel
@@ -2563,6 +2587,7 @@ fun onWfcDisabled(reason: String) {
 
     fun subscribe() {
         val msg = SipRegEventSubscribeBuilder.build(
+            accessNetworkInfo = SipAccessNetworkInfo.current(subTelephonyManager),
             mySip = mySip,
             myTel = myTel,
             commonHeaders = commonHeaders,

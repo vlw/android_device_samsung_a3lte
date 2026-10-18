@@ -121,7 +121,7 @@ open class SipCommonMessage(
             newHeaders["max-forwards"] = listOf("70")
         }
         if (headersParam["user-agent"] == null) {
-            newHeaders["user-agent"] = listOf("SM-A546B-YY Samsung IMS 7.0")
+            newHeaders["user-agent"] = listOf("${android.os.Build.MODEL} Samsung IMS 5.0")
         }
         val via = headersParam["via"]
         if (via != null) {

@@ -37,7 +37,7 @@ class PhhImsBroadcastReceiver : BroadcastReceiver() {
         }
 
         // Re-arm alarm.
-        imsService.armPeriodicRegisterAlarm()
+        imsService.onPeriodicRegisterAlarm()
 
         CoroutineScope(Dispatchers.IO).launch {
             val sipHandlers = imsService.getActiveSipHandlers()
@@ -49,12 +49,12 @@ class PhhImsBroadcastReceiver : BroadcastReceiver() {
 
             sipHandlers.forEach { sipHandler ->
                 try {
-                    sipHandler.register()
+                    sipHandler.refreshRegistrationIfReady()
                 } catch (e: IOException) {
                     Rlog.w(TAG, "Periodic REGISTER failed, reconnecting", e)
 
                     try {
-                        sipHandler.connect()
+                        sipHandler.retryRegistrationAfterRefreshFailure()
                     } catch (e2: Throwable) {
                         Rlog.e(TAG, "Reconnect after failed REGISTER also failed", e2)
                         sipHandler.imsFailureCallback?.invoke()
