@@ -1311,17 +1311,19 @@ fun onWfcDisabled(reason: String) {
         reconnectController.reconnectIms(reason, newNetwork, delayMs)
     }
 
-    private fun restartOutgoingMediaAfterDialogSdpCodecChange(
+    private fun restartMediaAfterDialogSdpCodecChange(
         oldCall: Call?,
         newCall: Call?,
         reason: String,
     ) {
-        if (oldCall == null || newCall == null || !newCall.outgoing) {
+        if (oldCall == null || newCall == null || currentCall?.callIdOrEmpty() != newCall.callIdOrEmpty()) {
             return
         }
 
         val codecChanged =
             oldCall.audioCodec.name != newCall.audioCodec.name ||
+                oldCall.audioCodec.bitRate != newCall.audioCodec.bitRate ||
+                oldCall.audioCodec.evs?.fmtp != newCall.audioCodec.evs?.fmtp ||
                 oldCall.audioCodec.sampleRate != newCall.audioCodec.sampleRate ||
                 oldCall.amrTrack != newCall.amrTrack ||
                 oldCall.dtmfTrack != newCall.dtmfTrack
@@ -1344,21 +1346,23 @@ fun onWfcDisabled(reason: String) {
         if (!threadsStarted.get()) {
             Rlog.d(
                 TAG,
-                "Outgoing dialog SDP changed codec before media start: reason=$reason " +
+                "Dialog SDP changed codec before media start: reason=$reason " +
                     "old=${oldCall.audioCodec.name}/${oldCall.audioCodec.sampleRate} pt=${oldCall.amrTrack} " +
                     "new=${newCall.audioCodec.name}/${newCall.audioCodec.sampleRate} pt=${newCall.amrTrack}",
             )
             return
         }
 
+        // callStarted describes the SIP dialog, not the codec worker. Keep it
+        // live across restart so a concurrent final answer cannot be overwritten
+        // by the delayed job. callStopped/generation retire the old workers.
         val newGeneration = callGeneration.incrementAndGet()
         callStopped.set(true)
-        callStarted.set(false)
         threadsStarted.set(false)
 
         Rlog.w(
             TAG,
-            "Restarting outgoing media after dialog SDP codec change: reason=$reason " +
+            "Restarting media after dialog SDP codec change: reason=$reason " +
                 "old=${oldCall.audioCodec.name}/${oldCall.audioCodec.sampleRate} pt=${oldCall.amrTrack}/${oldCall.dtmfTrack} " +
                 "new=${newCall.audioCodec.name}/${newCall.audioCodec.sampleRate} pt=${newCall.amrTrack}/${newCall.dtmfTrack} " +
                 "generation=$newGeneration",
@@ -1367,28 +1371,27 @@ fun onWfcDisabled(reason: String) {
         myHandler.postDelayed({
             val active = currentCall
             val activeCallId = active?.callHeaders?.get("call-id")?.getOrNull(0)
-            if (active == null || activeCallId != newCallId || !active.outgoing) {
+            if (active == null || activeCallId != newCallId || callGeneration.get() != newGeneration) {
                 Rlog.w(
                     TAG,
-                    "Skipping outgoing media restart after dialog SDP codec change; " +
+                    "Skipping media restart after dialog SDP codec change; " +
                         "activeCallId=$activeCallId expectedCallId=$newCallId activeOutgoing=${active?.outgoing}",
                 )
                 return@postDelayed
             }
 
             callStopped.set(false)
-            callStarted.set(false)
             if (threadsStarted.compareAndSet(false, true)) {
                 Rlog.w(
                     TAG,
-                    "Starting restarted outgoing media after dialog SDP codec change: " +
+                    "Starting restarted media after dialog SDP codec change: " +
                         "codec=${active.audioCodec.name}/${active.audioCodec.sampleRate} " +
                         "pt=${active.amrTrack}/${active.dtmfTrack} generation=${callGeneration.get()}",
                 )
                 callDecodeThread()
                 callEncodeThread(callSnapshot = active)
             } else {
-                Rlog.w(TAG, "Outgoing media restart skipped; threads already restarted")
+                Rlog.w(TAG, "Media restart skipped; threads already restarted")
             }
         }, 150L)
     }
@@ -2646,6 +2649,7 @@ fun onWfcDisabled(reason: String) {
 
     private fun updateCurrentCallFromUpdateSdp(
         call: Call,
+        audioCodec: NegotiatedAudioCodec,
         request: SipRequest,
         answerSdp: ByteArray,
         amrTrack: Int,
@@ -2668,6 +2672,7 @@ fun onWfcDisabled(reason: String) {
             extractDestinationFromContact = { contact -> extractDestinationFromContact(contact) },
         )
         val updatedCall = call.copy(
+            audioCodec = audioCodec,
             amrTrack = updateState.amrTrack,
             amrTrackDesc = updateState.amrTrackDesc,
             dtmfTrack = updateState.dtmfTrack,
@@ -2722,7 +2727,7 @@ fun onWfcDisabled(reason: String) {
 
         val answerSdp = SipUpdateSdpAnswerBuilder.build(
             request = request,
-            call = call,
+            call = call.copy(audioCodec=selectedAudioCodec),
             attributes = attributes,
             amrTrack = amrTrack,
             amrTrackDesc = amrTrackDesc,
@@ -2734,6 +2739,7 @@ fun onWfcDisabled(reason: String) {
 
         val updatedCall = updateCurrentCallFromUpdateSdp(
             call = call,
+            audioCodec = selectedAudioCodec,
             request = request,
             answerSdp = answerSdp,
             amrTrack = amrTrack,
@@ -2804,6 +2810,7 @@ fun onWfcDisabled(reason: String) {
             logTag = TAG,
         )
 
+        restartMediaAfterDialogSdpCodecChange(call,updateSdpAnswerState.updatedCall,"remote UPDATE")
         return 0
     }
 
@@ -4781,7 +4788,7 @@ fun onWfcDisabled(reason: String) {
             answer = answer,
             nextLocalCseqForDialog = nextLocalCseqForDialog,
         )
-        restartOutgoingMediaAfterDialogSdpCodecChange(
+        restartMediaAfterDialogSdpCodecChange(
             previousOutgoingDialogCall,
             currentCall,
             "status=${response.statusCode} cseq=${response.headers["cseq"]?.getOrNull(0).orEmpty()}",
@@ -5290,6 +5297,10 @@ fun onWfcDisabled(reason: String) {
         // to a lower AMR mode such as FT=2.
         val pt = SipRtpPacketParser.payloadType(dgramBuf)
         if (pt != receiveCall.amrTrack) return
+        if (audioCodec.isEvs) {
+            decoder.queueEvsPacket(dgramBuf,dgram.length,downlinkPlayoutBuffers.pcmQueue)
+            return
+        }
         val amrFrame = SipAmrRtpPayload.storageFrameFromBandwidthEfficientRtp(audioCodec, dgramBuf, dgram.length)
         val ftForLog = amrFrame?.ft ?: 15
 
@@ -5348,7 +5359,10 @@ fun onWfcDisabled(reason: String) {
         // send sparse SID/CN frames after DTMF; writing only when RTP arrives
         // lets AudioTrack underrun and sounds like heavy stutter. Keep a tiny
         // 20ms playout loop and feed silence when the decoder has no PCM ready.
-        val downlinkPlayoutBuffers = SipDownlinkPcmPlayoutBuffers.create(audioCodec)
+        val downlinkPlayoutBuffers = SipDownlinkPcmPlayoutBuffers.create(audioCodec,queueCapacity=if(audioCodec.isEvs) 32 else 8)
+        val decoder = SipAudioCodecFactory.createStartedDecoder(
+            audioCodec = audioCodec,
+        )
         val downlinkPlayoutThread = SipDownlinkPcmPlayout.start(
             logTag = TAG,
             audioTrack = audioTrack,
@@ -5357,11 +5371,10 @@ fun onWfcDisabled(reason: String) {
             callStopped = callStopped,
             callGeneration = callGeneration,
             generation = generation,
+            codecConcealment = if(audioCodec.isEvs) ({ decoder.evsConcealment() }) else null,
         )
 
-        val decoder = SipAudioCodecFactory.createStartedDecoder(
-            audioCodec = audioCodec,
-        )
+
 
         return DownlinkAudioRuntime(
             audioTrack = audioTrack,
@@ -5382,7 +5395,7 @@ fun onWfcDisabled(reason: String) {
         var receivedCount = 0
         while (true) {
             if (callStopped.get() || callGeneration.get() != generation) break
-            val dgramBuf = ByteArray(2048)
+            val dgramBuf = ByteArray(if(audioCodec.isEvs) 8192 else 2048)
             val dgram = DatagramPacket(dgramBuf, dgramBuf.size)
             val receiveCall = currentCall ?: break
             when (receiveDownlinkRtpPacket(receiveCall, dgram, generation)) {
@@ -5512,6 +5525,7 @@ fun onWfcDisabled(reason: String) {
 
     private fun updateDialogCallFromInDialogInviteSdp(
         call: Call,
+        audioCodec: NegotiatedAudioCodec,
         request: SipRequest,
         answerSdp: ByteArray,
         amrTrack: Int,
@@ -5534,6 +5548,7 @@ fun onWfcDisabled(reason: String) {
             extractDestinationFromContact = { contact -> extractDestinationFromContact(contact) },
         )
         val updatedCall = call.copy(
+            audioCodec = audioCodec,
             amrTrack = updateState.amrTrack,
             amrTrackDesc = updateState.amrTrackDesc,
             dtmfTrack = updateState.dtmfTrack,
@@ -5587,6 +5602,7 @@ fun onWfcDisabled(reason: String) {
 
         val mediaSelection = SipInDialogInvite.selectMedia(
             attributes = attributes,
+            offeredPayloads = sdp.firstOrNull { it.startsWith("m=audio ") }?.split(Regex("\\s+"))?.drop(3)?.mapNotNull { it.toIntOrNull() }?.toSet().orEmpty(),
             selectedAudioCodec = call.audioCodec,
             logTag = TAG,
         ) ?: return 488
@@ -5614,8 +5630,9 @@ fun onWfcDisabled(reason: String) {
         )
 
 
-        updateDialogCallFromInDialogInviteSdp(
+        val updatedCall = updateDialogCallFromInDialogInviteSdp(
             call = call,
+            audioCodec = selectedAudioCodec,
             request = request,
             answerSdp = answerSdp,
             amrTrack = amrTrack,
@@ -5643,6 +5660,7 @@ fun onWfcDisabled(reason: String) {
             responseWriter = responseWriter,
             response = response,
         )
+        restartMediaAfterDialogSdpCodecChange(call,updatedCall,"remote re-INVITE")
         return 0
     }
 

@@ -13,7 +13,18 @@ data class NegotiatedAudioCodec(
     val bitRate: Int,
     val frameDurationMs: Int,
     val rtpTimestampStep: Int,
-)
+    val evs: EvsSession? = null,
+    val payloadId: Int? = null,
+    val parameters: String? = null,
+) {
+    val isEvs: Boolean get() = sdpCodecName == "EVS"
+    val octetAligned: Boolean get() = parameters?.substringAfter(' ', "")?.split(';')?.any {
+        val pair=it.trim().split('=',limit=2)
+        pair.size==2 && pair[0].trim().equals("octet-align",true) && pair[1].trim()=="1"
+    }==true
+    fun sameMedia(other: NegotiatedAudioCodec): Boolean =
+        copy(evs=null)==other.copy(evs=null) && evs?.fmtp==other.evs?.fmtp
+}
 
 internal object SipAudioCodecs {
     // AMR fallback for peers without wideband support.
@@ -97,6 +108,7 @@ internal object SipAudioCodecSdpLogger {
             .mapNotNull { rtpmap ->
                 val match = rtpmapRegex.matchEntire(rtpmap) ?: return@mapNotNull null
                 val payload = match.groupValues[1].toIntOrNull() ?: return@mapNotNull null
+                if (payload !in offeredOrder) return@mapNotNull null
                 val codec = match.groupValues[2].toUpperCase()
                 val rate = match.groupValues[3].toIntOrNull()
                 val channels = match.groupValues.getOrNull(4)?.ifBlank { null }

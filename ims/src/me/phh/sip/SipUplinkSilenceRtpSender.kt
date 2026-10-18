@@ -18,7 +18,7 @@ object SipUplinkSilenceRtpSender {
     ): Boolean {
         // TS 26.445 A.2.2.1.2: do not send standalone EVS NO_DATA packets.
         // The pre-answer/microphone-settle pacer still waits without RTP output.
-        if (audioCodec == SipAudioCodecs.EVS_SWB) return true
+        if (audioCodec.isEvs) return true
         val packet = SipAmrRtpPayload.buildNoDataRtpPacket(
             audioCodec = audioCodec,
             payloadType = payloadType,

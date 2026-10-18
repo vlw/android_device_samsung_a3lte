@@ -8,7 +8,7 @@ object SipAudioCodecFactory {
     fun createStartedDecoder(
         audioCodec: NegotiatedAudioCodec,
     ): SipMediaCodec {
-        if (audioCodec == SipAudioCodecs.EVS_SWB) return SipMediaCodec.evs(false)
+        if (audioCodec.isEvs) return SipMediaCodec.evs(audioCodec,false)
         val decoder = MediaCodec.createDecoderByType(audioCodec.mimeType)
         val mediaFormat = MediaFormat.createAudioFormat(
             audioCodec.mimeType,
@@ -23,7 +23,7 @@ object SipAudioCodecFactory {
     fun createStartedEncoder(
         audioCodec: NegotiatedAudioCodec,
     ): SipMediaCodec {
-        if (audioCodec == SipAudioCodecs.EVS_SWB) return SipMediaCodec.evs(true)
+        if (audioCodec.isEvs) return SipMediaCodec.evs(audioCodec,true)
         val encoder = MediaCodec.createEncoderByType(audioCodec.mimeType)
         val mediaFormat = MediaFormat.createAudioFormat(
             audioCodec.mimeType,

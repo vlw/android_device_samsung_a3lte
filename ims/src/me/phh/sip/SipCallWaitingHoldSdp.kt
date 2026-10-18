@@ -36,7 +36,7 @@ internal object SipCallWaitingHoldSdp {
             "b=RR:0",
             "a=${call.amrTrackDesc}",
             "a=ptime:20",
-            if (call.audioCodec == SipAudioCodecs.EVS_SWB) "a=maxptime:20" else "a=maxptime:240",
+            if (call.audioCodec.isEvs) "a=maxptime:20" else "a=maxptime:240",
             "a=${call.dtmfTrackDesc}",
             "a=$speechFmtp",
             "a=fmtp:${call.dtmfTrack} 0-15",

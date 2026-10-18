@@ -810,7 +810,10 @@ class PhhMmTelFeature(
         val rate = (extras["audio-codec-rate"] as? String)?.toIntOrNull()
         val quality = when (codec) {
             "AMR-WB" -> ImsStreamMediaProfile.AUDIO_QUALITY_AMR_WB
+            "EVS-NB" -> ImsStreamMediaProfile.AUDIO_QUALITY_EVS_NB
+            "EVS-WB" -> ImsStreamMediaProfile.AUDIO_QUALITY_EVS_WB
             "EVS-SWB" -> ImsStreamMediaProfile.AUDIO_QUALITY_EVS_SWB
+            "EVS-FB" -> ImsStreamMediaProfile.AUDIO_QUALITY_EVS_FB
             else -> ImsStreamMediaProfile.AUDIO_QUALITY_AMR
         }
 

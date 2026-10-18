@@ -85,7 +85,7 @@ internal object SipAmrRtpPayload {
     }
 
     fun storageFrameSizeBytes(audioCodec: NegotiatedAudioCodec, ft: Int): Int? {
-        if (audioCodec == SipAudioCodecs.EVS_SWB) return if (ft == 4) 34 else null
+        if (audioCodec.isEvs) return EvsFrames.size(ft)
         val speechBits = speechBitsForFt(audioCodec, ft) ?: return null
         return 1 + ((speechBits + 7) / 8)
     }
@@ -123,9 +123,9 @@ internal object SipAmrRtpPayload {
         //
         // AMR-WB is not selected yet. When it is enabled, this helper is the
         // single place to adjust codec-mode request/no-data framing if needed.
-        val noDataPayload = when (audioCodec.sdpCodecName) {
-            // Preserve current AMR-NB behavior: CMR=7 requests 12.2 kbit/s.
-            "AMR" -> byteArrayOf(0x77.toByte(), 0xc0.toByte())
+        val noDataPayload = if(audioCodec.octetAligned) byteArrayOf(0xf0.toByte(),0x7c) else when (audioCodec.sdpCodecName) {
+            // CMR=15 requests no mode change; obey the negotiated AMR mode-set.
+            "AMR" -> byteArrayOf(0xf7.toByte(), 0xc0.toByte())
             // For AMR-WB, do not request a specific codec mode during no-data.
             // CMR=15, F=0, FT=15, Q=1.
             "AMR-WB" -> byteArrayOf(0xf7.toByte(), 0xc0.toByte())
@@ -150,11 +150,10 @@ internal object SipAmrRtpPayload {
         marker: Boolean = false,
     ): ByteArray? {
         if (storageFrame.isEmpty()) return null
-        if (audioCodec == SipAudioCodecs.EVS_SWB) {
-            if (storageFrame.size != 34 || storageFrame[0] != 4.toByte()) return null
-            // cmr=-1 disables CMR. hf-only=1 makes this ToC+speech payload
-            // unambiguous without the size-collision padding of default mode.
-            return buildRtpHeader(payloadType, sequenceNumber, timestamp, marker) + storageFrame
+        if (audioCodec.isEvs) {
+            val session = audioCodec.evs ?: return null
+            val payload = EvsRtpPayload.payload(storageFrame,session) ?: return null
+            return buildRtpHeader(payloadType,sequenceNumber,timestamp,marker) + payload
         }
 
         // Android MediaCodec emits AMR storage-format frames:
@@ -168,6 +167,10 @@ internal object SipAmrRtpPayload {
         val frameSize = storageFrameSizeBytes(audioCodec, ft) ?: return null
         if (storageFrame.size < frameSize) return null
 
+        if(audioCodec.octetAligned) {
+            return buildRtpHeader(payloadType,sequenceNumber,timestamp,marker) +
+                byteArrayOf(0xf0.toByte()) + storageFrame.copyOfRange(0,frameSize)
+        }
         val cmr = 0x0f // no codec-mode request
         val f = 0      // one frame only
 
@@ -199,19 +202,23 @@ internal object SipAmrRtpPayload {
     ): SipAmrStorageFrame? {
         if (packetLength > packet.size || packetLength < 12 || (packet[0].toInt() and 0xc0) != 0x80) return null
         val payloadOffset = rtpPayloadOffset(packet, packetLength) ?: return null
-        if (audioCodec == SipAudioCodecs.EVS_SWB) {
-            var end = packetLength
-            if ((packet[0].toInt() and 0x20) != 0) {
-                val padding = packet[end-1].toInt() and 0xff
-                if (padding == 0 || padding > end-payloadOffset) return null
-                end -= padding
-            }
-            // Header-full only: optional CMR, one primary FT4 speech frame.
-            // No AMR-WB IO, aggregation or rate switching is advertised.
-            var start = payloadOffset
-            if (start < end && (packet[start].toInt() and 0x80) != 0) start++
-            if (end-start != 34 || packet[start] != 4.toByte()) return null
-            return SipAmrStorageFrame(4,1,packet.copyOfRange(start,end))
+        if (audioCodec.isEvs) {
+            val session = audioCodec.evs ?: return null
+            val parsed = EvsRtpPayload.parse(packet,packetLength,session) ?: return null
+            if (parsed.frames.size!=1) return null
+            val frame=parsed.frames[0]
+            return SipAmrStorageFrame(frame[0].toInt() and 0x3f,1,frame)
+        }
+
+        if(audioCodec.octetAligned) {
+            if(packetLength<payloadOffset+2) return null
+            val toc=packet[payloadOffset+1].toInt() and 255
+            if(toc and 0x83 != 0) return null // one channel/frame; no interleaving/CRC
+            val ft=(toc shr 3) and 15
+            val frameSize=storageFrameSizeBytes(audioCodec,ft) ?: return null
+            if(packetLength<payloadOffset+1+frameSize) return null
+            return SipAmrStorageFrame(ft,(toc shr 2) and 1,
+                packet.copyOfRange(payloadOffset+1,payloadOffset+1+frameSize))
         }
         val payloadBitsStart = payloadOffset * 8
         val payloadBitsEnd = packetLength * 8

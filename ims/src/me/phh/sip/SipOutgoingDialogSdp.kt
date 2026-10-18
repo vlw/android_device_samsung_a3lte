@@ -260,7 +260,7 @@ internal object SipOutgoingDialogSdp {
                 responseCseq.contains("INVITE") &&
                 (response.statusCode == 200 || response.statusCode == 202) &&
                 (
-                    previousAudioCodec != answer.dialogAudioCodec ||
+                    previousAudioCodec?.sameMedia(answer.dialogAudioCodec) != true ||
                         previousAmrTrack != answer.dialogAmrTrack ||
                         previousDtmfTrack != answer.dialogDtmfTrack ||
                         previousRtpRemoteAddr != answer.rtpRemoteAddr ||
@@ -323,7 +323,7 @@ internal object SipOutgoingDialogSdp {
             amrNbTrack = amrNbTrack,
             dtmfNbTrack = dtmfNbTrack,
             amrWbMediaCodecAvailable = amrWbMediaCodecAvailable,
-        )
+        ) ?: return null
         val outgoingDialogRtpEndpoint = connectRtpEndpointFromAnswer(
             logTag = logTag,
             respSdp = respSdp,
@@ -346,7 +346,7 @@ internal object SipOutgoingDialogSdp {
         amrNbTrack: Int,
         dtmfNbTrack: Int,
         amrWbMediaCodecAvailable: Boolean,
-    ): OutgoingDialogMediaSelection {
+    ): OutgoingDialogMediaSelection? {
         fun sdpElement(command: String): String? {
             val v = respSdp.firstOrNull { it.startsWith("$command=")} ?: return null
             return v.substring(2)
@@ -389,7 +389,7 @@ internal object SipOutgoingDialogSdp {
             context = "outgoing SDP response ${response.statusCode} callId=${response.callIdOrEmpty()}",
             amrWbMediaCodecAvailable = amrWbMediaCodecAvailable,
         )
-        val selectedAmr = lookResponseTrackMatching(
+        val selectedAmr = selectedAudioCodec.payloadId?.let { it to "rtpmap:$it ${SipAudioCodecNegotiator.speechCodecRtpmapName(selectedAudioCodec)}" } ?: lookResponseTrackMatching(
             SipAudioCodecNegotiator.speechCodecRtpmapName(selectedAudioCodec),
             notAdditional = "octet-align=1",
         )
@@ -410,6 +410,7 @@ internal object SipOutgoingDialogSdp {
                     "falling back to telephone-event/8000",
             )
         }
+        if(selectedAmr==null || selectedDtmf==null) return null
         val dialogAudioCodec =
             if (selectedAmr != null && selectedDtmf != null) selectedAudioCodec else SipAudioCodecs.AMR_NB
         val (dialogAmrTrack, dialogAmrTrackDesc) =

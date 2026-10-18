@@ -93,7 +93,7 @@ object SipUplinkAudioEncoder {
 
             var bufPos = 0
             while (bufPos < outBufInfo.size) {
-                val ft = if (audioCodec == SipAudioCodecs.EVS_SWB) encoderData[bufPos].toInt() and 0x0f
+                val ft = if (audioCodec.isEvs) encoderData[bufPos].toInt() and 0x3f
                     else (encoderData[bufPos].toUByte().toInt() shr 3) and 0xf
                 val frameSize = SipAmrRtpPayload.storageFrameSizeBytes(audioCodec, ft)
                 if (frameSize == null) {
@@ -102,6 +102,12 @@ object SipUplinkAudioEncoder {
                 }
                 if (outBufInfo.size - bufPos < frameSize) break
 
+                if (audioCodec.isEvs && (ft and 15)==15) {
+                    nextTimestamp() // preserve the elapsed frame time during DTX
+                    currentFirstPacket=true
+                    bufPos+=frameSize
+                    continue
+                }
                 val sequenceNumber = nextSequenceNumber()
                 val timestamp = nextTimestamp()
                 val storageFrame = encoderData.copyOfRange(bufPos, bufPos + frameSize)
@@ -109,13 +115,13 @@ object SipUplinkAudioEncoder {
                     sequenceNumber,
                     timestamp,
                     storageFrame,
-                    currentFirstPacket,
+                    currentFirstPacket && (!audioCodec.isEvs || EvsFrames.speech(ft)),
                     ft,
                     frameSize,
                     currentRealFrameCount,
                 )) break
 
-                currentFirstPacket = false
+                currentFirstPacket = audioCodec.isEvs && !EvsFrames.speech(ft)
                 currentRealFrameCount++
                 bufPos += frameSize
             }

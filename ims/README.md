@@ -88,11 +88,11 @@ this requires device-side IWLAN/QNS integration and a SIM/operator with WFC for
 AKA, tunnel establishment, registration and handover tests. No WFC readiness is
 claimed by this port.
 
-## EVS super-wideband
+## EVS
 
-EVS Primary 13.2 kbit/s SWB is integrated through the unmodified SM-A300FU
-Android 6 software codec and a device-owned JNI/media adapter. It is offered
-before AMR-WB/AMR only after the native codec self-check succeeds. This is an
-application-processor media path; no claim about modem/DSP EVS offload is made.
-See EVS.md for ABI, SDP/RTP restrictions, provenance and offline verification.
-No live EVS call has been made or validated.
+The stock Android 6 software backend supports the EVS Primary rate range and
+NB/WB/SWB/FB bandwidths, all nine AMR-WB IO modes, DTX/SID, CMR and Compact /
+Header-Full RTP. Per-session constraints follow SDP negotiation and renegotiation;
+AMR-WB/AMR fallbacks retain Android MediaCodec and honor mode-set. See EVS.md
+for the verified mode matrix, protocol behavior, build/provenance and limits.
+There has been no live-call or operator-interoperability validation.

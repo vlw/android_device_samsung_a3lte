@@ -34,6 +34,7 @@ object SipDownlinkPcmPlayout {
         callStopped: AtomicBoolean,
         callGeneration: AtomicInteger,
         generation: Int,
+        codecConcealment: (() -> ByteArray?)? = null,
     ): Thread =
         thread(name = "PhhDownlinkPcmPlayout") {
             try {
@@ -59,8 +60,10 @@ object SipDownlinkPcmPlayout {
                             lastGoodPcmFrame = queuedPcm
                             queuedPcm
                         } else {
+                            val codecFrame = codecConcealment?.invoke()
                             val last = lastGoodPcmFrame
-                            if (last != null && fillerFrames < DOWNLINK_UNDERRUN_CONCEALMENT_FRAMES) {
+                            if (codecFrame != null) codecFrame
+                            else if (last != null && fillerFrames < DOWNLINK_UNDERRUN_CONCEALMENT_FRAMES) {
                                 attenuatePcm16LeFrame(
                                     last,
                                     gainShift = (fillerFrames + 2).coerceAtMost(8),

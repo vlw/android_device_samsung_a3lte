@@ -9,7 +9,8 @@ The SIP/IMS implementation in src/me/phh is based on:
 
 Only Java/Kotlin sources, application resources and the license were imported.
 Upstream build keys, SDK jars, binaries and the unused RNNoise JNI helper are
-not part of this device integration. Audio uses the platform AMR codecs.
+not part of this device integration. AMR audio uses the platform codecs; EVS
+uses the separately imported stock backend described below.
 
 Local adaptations include Android 12 slot/subscription and incoming-session
 APIs, legacy ServiceState readiness, the bundled Kotlin version, IMS-network
@@ -25,9 +26,14 @@ TP-MR for Android delivery tracking, bound adapter completion to once, fail
 pending SMS on teardown, reject malformed RP frames and return CS fallback on
 missing transport. Device CarrierConfig keeps unsupported USSD/UT on CS.
 
-EVS follow-up: device-owned StockEvs JNI wrapper and SipMediaCodec adapter keep
-the Android AMR MediaCodec path while adding the SM-A300FU Android 6 software
-EVS backend. The local profile is fixed Primary 13.2 SWB, 20 ms, header-full,
-DTX/CMR disabled. SDP selection, RTP packing, renegotiation constraints and
-Android audio quality reporting are extended; DTMF uses RTP clock frequency.
-See EVS.md. The stock codec binary is unmodified in vendor/samsung/a3lte.
+EVS: the device-owned StockEvs JNI wrapper and SipMediaCodec adapter retain
+Android AMR MediaCodec while adding the SM-A300FU Android 6 software backend.
+Per-session Primary/IO rate, bandwidth and DTX constraints follow directional
+SDP negotiation; bounded CMR adaptation configures the stock wrapper. RTP
+supports Compact/Header-Full payloads and aggregation, with codec CNG/PLC.
+Renegotiated media propagates into call state while preserving established-call
+state during worker restart. AMR fallback honors mode-set and supports
+octet-aligned payloads. EvsModesTest covers the expanded mode/protocol matrix;
+EvsCodecTest forwards to that suite. See EVS.md for validation and limitations.
+The stock binary is unmodified in vendor/samsung/a3lte and retains its original
+proprietary license.

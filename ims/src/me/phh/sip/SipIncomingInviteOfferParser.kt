@@ -131,11 +131,13 @@ internal object SipIncomingInviteMediaSelector {
         amrWbMediaCodecAvailable: Boolean,
         logTag: String,
     ): IncomingInviteMediaSelection? {
+        val payloads=sdp.firstOrNull { it.startsWith("m=audio ") }?.split(Regex("\\s+"))?.drop(3)?.mapNotNull { it.toIntOrNull() }?.toSet().orEmpty()
         fun lookTrackMatching(codec: String, additional: String = "", notAdditional: String = ""): Pair<Int,String>? {
             //TODO: also match on fmtp
             val maps = attributes.filter { it.startsWith("rtpmap") && it.contains(codec) }
-            val matches = maps.map { m ->
-                val track = m.split("[: ]+".toRegex())[1].toInt()
+            val matches = maps.mapNotNull { m ->
+                val track = m.split("[: ]+".toRegex()).getOrNull(1)?.toIntOrNull() ?: return@mapNotNull null
+                if(track !in payloads) return@mapNotNull null
                 val desc = m
                 Pair(track, desc)
             }
@@ -184,20 +186,23 @@ internal object SipIncomingInviteMediaSelector {
         } else {
             null
         }
-        val (amrTrack, amrTrackDesc) = preferredAmrNbTrack ?: lookTrackMatching(
+        val selectedEvs = selectedAudioCodec.payloadId?.let { payload ->
+            payload to "rtpmap:$payload ${SipAudioCodecNegotiator.speechCodecRtpmapName(selectedAudioCodec)}"
+        }
+        val (amrTrack, amrTrackDesc) = selectedEvs ?: preferredAmrNbTrack ?: lookTrackMatching(
             SipAudioCodecNegotiator.speechCodecRtpmapName(selectedAudioCodec),
             additional = "",
             notAdditional = "octet-align=1",
         ) ?: return null
         val amrTrackRequirements = trackRequirements(amrTrack)
-        if (selectedAudioCodec == SipAudioCodecs.EVS_SWB &&
+        if (selectedAudioCodec.isEvs &&
             !EvsSwbProfile.compatible(amrTrackRequirements.orEmpty(), false)) return null
         Rlog.d(
             logTag,
             "Selected incoming speech payload track=$amrTrack codec=${selectedAudioCodec.name} " +
                 "desc=$amrTrackDesc fmtp=${amrTrackRequirements.orEmpty()} callId=$incomingCallId",
         )
-        val amrFmtpAnswer = if (selectedAudioCodec == SipAudioCodecs.EVS_SWB)
+        val amrFmtpAnswer = if (selectedAudioCodec.isEvs)
             SipAudioCodecNegotiator.defaultSpeechFmtpAnswer(amrTrack, selectedAudioCodec)
         else amrTrackRequirements ?: SipAudioCodecNegotiator.defaultSpeechFmtpAnswer(amrTrack, selectedAudioCodec)
 
@@ -261,7 +266,7 @@ internal object SipIncomingInviteOfferBuilder {
             peerSupportsEarlyMedia = capabilities.peerSupportsEarlyMedia,
             callerSupportsPrecondition = capabilities.callerSupportsPrecondition,
             sendReliable183 = capabilities.sendReliable183,
-            remoteMaxptime = if (mediaSelection.selectedAudioCodec == SipAudioCodecs.EVS_SWB) "maxptime:20" else capabilities.remoteMaxptime,
+            remoteMaxptime = if (mediaSelection.selectedAudioCodec.isEvs) "maxptime:20" else capabilities.remoteMaxptime,
             selectedAudioCodec = mediaSelection.selectedAudioCodec,
             amrTrack = mediaSelection.amrTrack,
             amrTrackDesc = mediaSelection.amrTrackDesc,

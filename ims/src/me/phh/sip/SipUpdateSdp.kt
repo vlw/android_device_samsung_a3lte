@@ -124,42 +124,43 @@ internal object SipUpdateSdpMediaSelector {
         selectedAudioCodec: NegotiatedAudioCodec,
         requestCallId: String,
     ): UpdateSdpMediaSelection? {
+        val audioCodec=SipAudioCodecNegotiator.selectRenegotiation(attributes,offeredPayloads,logTag)
         // Keep the selected speech payload first in SDP answers. Sorting payload IDs can
         // put telephone-event before AMR-WB, e.g. m=audio ... 96 104, which some
         // IMS cores reject as an offer/answer error during precondition UPDATE.
-        val amr = SipUpdateSdpAnswerNegotiator.lookTrackMatching(
+        val amr = audioCodec.payloadId?.let { it to "rtpmap:$it ${SipAudioCodecNegotiator.speechCodecRtpmapName(audioCodec)}" } ?: SipUpdateSdpAnswerNegotiator.lookTrackMatching(
             logTag = logTag,
             attributes = attributes,
             offeredPayloads = offeredPayloads,
-            codec = SipAudioCodecNegotiator.speechCodecRtpmapName(selectedAudioCodec),
+            codec = SipAudioCodecNegotiator.speechCodecRtpmapName(audioCodec),
             notAdditional = "octet-align=1",
         )
         if (amr == null) {
             Rlog.w(
                 logTag,
-                "Rejecting UPDATE: no compatible ${SipAudioCodecNegotiator.speechCodecRtpmapName(selectedAudioCodec)} " +
+                "Rejecting UPDATE: no compatible ${SipAudioCodecNegotiator.speechCodecRtpmapName(audioCodec)} " +
                     "payload in offer callId=$requestCallId offered=$offeredPayloads",
             )
             return null
         }
         val (amrTrack, amrTrackDesc) = amr
-        if (selectedAudioCodec == SipAudioCodecs.EVS_SWB &&
+        if (audioCodec.isEvs &&
             !EvsSwbProfile.compatible(SipUpdateSdpAnswerNegotiator.trackRequirements(attributes, amrTrack).orEmpty(), false)) return null
-        val amrFmtpAnswer = if (selectedAudioCodec == SipAudioCodecs.EVS_SWB)
-            SipAudioCodecNegotiator.defaultSpeechFmtpAnswer(amrTrack, selectedAudioCodec)
+        val amrFmtpAnswer = if (audioCodec.isEvs)
+            SipAudioCodecNegotiator.defaultSpeechFmtpAnswer(amrTrack, audioCodec)
         else SipUpdateSdpAnswerNegotiator.trackRequirements(attributes, amrTrack)
-            ?: SipAudioCodecNegotiator.defaultSpeechFmtpAnswer(amrTrack, selectedAudioCodec)
+            ?: SipAudioCodecNegotiator.defaultSpeechFmtpAnswer(amrTrack, audioCodec)
 
         val dtmf = SipUpdateSdpAnswerNegotiator.lookTrackMatching(
             logTag = logTag,
             attributes = attributes,
             offeredPayloads = offeredPayloads,
-            codec = SipAudioCodecNegotiator.telephoneEventRtpmapName(selectedAudioCodec),
+            codec = SipAudioCodecNegotiator.telephoneEventRtpmapName(audioCodec),
         )
         if (dtmf == null) {
             Rlog.w(
                 logTag,
-                "Rejecting UPDATE: no compatible ${SipAudioCodecNegotiator.telephoneEventRtpmapName(selectedAudioCodec)} " +
+                "Rejecting UPDATE: no compatible ${SipAudioCodecNegotiator.telephoneEventRtpmapName(audioCodec)} " +
                     "payload in offer callId=$requestCallId offered=$offeredPayloads",
             )
             return null
@@ -167,7 +168,7 @@ internal object SipUpdateSdpMediaSelector {
         val (dtmfTrack, dtmfTrackDesc) = dtmf
 
         return UpdateSdpMediaSelection(
-            selectedAudioCodec = selectedAudioCodec,
+            selectedAudioCodec = audioCodec,
             amrTrack = amrTrack,
             amrTrackDesc = amrTrackDesc,
             amrFmtpAnswer = amrFmtpAnswer,
@@ -233,7 +234,7 @@ internal object SipUpdateSdpAnswerBuilder {
         val ipType = if (localAddr is Inet6Address) "IP6" else "IP4"
         val owner = request.destination.substringAfter("sip:").substringBefore("@").ifBlank { "-" }
         val sdpVersion = call.localSdpVersion.incrementAndGet()
-        val remoteMaxptime = if (selectedAudioCodec == SipAudioCodecs.EVS_SWB) "maxptime:20" else attributes.firstOrNull { it.startsWith("maxptime:") } ?: "maxptime:240"
+        val remoteMaxptime = if (selectedAudioCodec.isEvs) "maxptime:20" else attributes.firstOrNull { it.startsWith("maxptime:") } ?: "maxptime:240"
         val sdpBandwidthAs = SipAudioCodecNegotiator.sdpBandwidthAsKbps(selectedAudioCodec)
 
         val answerSdpLines = listOf(
