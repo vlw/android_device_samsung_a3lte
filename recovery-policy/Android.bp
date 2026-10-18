@@ -3,9 +3,9 @@ python_binary_host {
     name: "a3_ota_from_target_files",
     defaults: ["releasetools_binary_defaults"],
     version: {py2: {enabled: false}, py3: {enabled: true, embedded_launcher: true}},
-    data: ["install/bin/backuptool.sh", "install/bin/backuptool.functions"],
+    required: ["a3_ota_backuptool", "a3_ota_backuptool_functions"],
     main: "a3_ota_from_target_files.py",
-    srcs: ["a3_ota_from_target_files.py", "a3_non_ab_ota.py", "recovery_policy.py"],
+    srcs: ["a3_ota_from_target_files.py", "ota_no_recovery.py", "recovery_policy.py"],
     libs: ["releasetools_ota_from_target_files"],
 }
 
@@ -14,8 +14,8 @@ python_binary_host {
     name: "a3_recovery_policy_test",
     defaults: ["releasetools_binary_defaults"],
     version: {py2: {enabled: false}, py3: {enabled: true, embedded_launcher: true}},
-    data: ["install/bin/backuptool.sh", "install/bin/backuptool.functions"],
+    required: ["a3_ota_backuptool", "a3_ota_backuptool_functions"],
     main: "test_policy.py",
-    srcs: ["test_policy.py", "recovery_policy.py", "a3_non_ab_ota.py", "a3_ota_from_target_files.py"],
+    srcs: ["test_policy.py", "recovery_policy.py", "ota_no_recovery.py", "a3_ota_from_target_files.py"],
     libs: ["releasetools_ota_from_target_files"],
 }

@@ -5,7 +5,8 @@ import unittest
 import zipfile
 from unittest.mock import patch
 import a3_ota_from_target_files
-import a3_non_ab_ota
+import non_ab_ota
+import ota_no_recovery
 import common
 from recovery_policy import check_target, check_ota
 
@@ -31,6 +32,19 @@ class PolicyTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 check_target(target)
 
+    def test_upstream_changes_stop_packaging(self):
+        with self.assertRaises(common.ExternalError):
+            ota_no_recovery._drop_once("changed upstream code", "expected fragment")
+        with self.assertRaises(common.ExternalError):
+            ota_no_recovery._drop_once("fragment fragment", "fragment")
+
+    def test_direct_writers_reject_two_step(self):
+        with patch.object(common.OPTIONS, "two_step", True):
+            for writer in [non_ab_ota.WriteFullOTAPackage,
+                           non_ab_ota.WriteBlockIncrementalOTAPackage]:
+                with self.assertRaises(common.ExternalError):
+                    writer(None, None)
+
     def test_allow_clean_target(self):
         with archive({"IMAGES/boot.img": b"boot", "SYSTEM/build.prop": b"props"}) as target:
             check_target(target)
@@ -48,7 +62,7 @@ class PolicyTest(unittest.TestCase):
     def test_reject_two_step_before_io(self):
         with patch.object(common.OPTIONS, "two_step", True):
             with self.assertRaises(common.ExternalError):
-                a3_non_ab_ota.GenerateNonAbOtaPackage("missing.zip", "never-created.zip")
+                non_ab_ota.GenerateNonAbOtaPackage("missing.zip", "never-created.zip")
 
     def test_runtime_partition_map_excludes_recovery(self):
         raw = "/dev/block/bootdevice/by-name/boot /boot emmc defaults defaults\n"

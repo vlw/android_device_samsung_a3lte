@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Standard OTA entry point with the a3lte recovery-preserving non-A/B backend."""
+"""Standard OTA entry point with the a3lte recovery-preserving adapter."""
 import sys
 import common
 import ota_from_target_files
-from a3_non_ab_ota import GenerateNonAbOtaPackage
+import non_ab_ota
+import ota_no_recovery
 
 # Non-A/B AOSP normally reads fstab from RECOVERY/RAMDISK. Use the runtime
 # device fstab instead, without packaging a recovery ramdisk just for metadata.
@@ -24,7 +25,8 @@ def _device_fstab(info, input_file, read_helper):
 
 
 common._FindAndLoadRecoveryFstab = _device_fstab
-ota_from_target_files.GenerateNonAbOtaPackage = GenerateNonAbOtaPackage
+ota_no_recovery.install()
+ota_from_target_files.GenerateNonAbOtaPackage = non_ab_ota.GenerateNonAbOtaPackage
 
 if __name__ == "__main__":
     try:

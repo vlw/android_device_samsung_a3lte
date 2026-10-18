@@ -42,23 +42,26 @@ includes recovery.img in full ZIPs, and implements two-step recovery flashing.
 Disabling the image alone therefore either breaks ZIP generation or leaves an
 unsafe workaround. No framework/build-system source is changed here.
 
-`Android.mk` selects `a3_ota_from_target_files` for this device and provides the
-fstab metadata needed for the normal OTA build target. The entry point uses the
-standard signing/metadata/block-update code with `a3_non_ab_ota.py` as backend.
-That file is derived from `build/make/tools/releasetools/non_ab_ota.py` at build/make
-revision `ec4184bcd771e59d3d108115507587444697be38`, retaining its license.
-Changes remove recovery payloads and the two-step implementation, accept only
-no-recovery targets, and validate both the target-files and generated ZIP.
-Signing and ordinary boot/system updates remain upstream behavior. Two-step OTA
-is explicitly rejected. Full and block incremental OTA are supported.
+`Android.mk` selects `a3_ota_from_target_files` and supplies the fstab metadata
+needed to retain the normal OTA build target. The entry point reuses the existing
+`releasetools_ota_from_target_files` library, including its non-A/B generator,
+block updates, metadata and signing. There is no generator fork in this tree.
+
+`ota_no_recovery.py` excludes four exact recovery-only fragments from three
+upstream functions **in memory**: the no-recovery rejection, recovery-patch
+requirement, and full/incremental recovery-image loading. System source files
+are never edited. If any fragment changes or occurs more than once, packaging
+stops for review. Two-step OTA is rejected before generation and by both writers,
+so its remaining upstream branches cannot run. Target inputs and the output ZIP
+are validated before finalization/signing; no fake recovery image is substituted.
 
 The runtime `SYSTEM/vendor/etc/fstab.qcom` supplies the partition map without a
-recovery ramdisk; `/recovery` is removed from the host generator's map. The two
-host-bundled `install/bin/backuptool*` scripts are unmodified copies from
-`vendor/lineage/prebuilt/common/bin` in this checkout, because AOSP omits INSTALL/
-when no recovery is built. They preserve addon.d backup/restore without storing
-an installer or a recovery image in Android. Keep them in sync with Lineage's
-versions when updating this branch. Host Python 3 is embedded for reproducibility.
+recovery ramdisk; `/recovery` is removed from the host generator's map. For full
+OTA addon.d backup/restore, host prebuilt rules read backuptool directly from
+`vendor/lineage/prebuilt/common/bin`, installing resources under the host output's
+`etc/a3-ota/`. The scripts are not duplicated in device sources or installed in
+Android. Build the wrapper target to also install its required host resources;
+keep that host directory when moving the tool. Python 3 is embedded.
 
 ## Verification
 
@@ -70,11 +73,14 @@ out/host/linux-x86/bin/a3_recovery_policy_test
 ```
 
 Host tests cover forbidden payloads and stale block maps, safe/unsafe scripts,
-two-step rejection before file access, and the runtime fstab without /recovery.
+two-step rejection before file access (including direct writers), rejection of
+changed upstream fragments, and the runtime fstab without /recovery.
 Full and incremental ZIPs were additionally generated from synthetic ext4
 fixtures with addon.d backup enabled and the real a3lte DT adaptation extension.
-Their scripts, block data and backup tools were checked; neither ZIP contains a
-recovery payload or recovery-writing operation. These are host-only packaging
+Their scripts and block data, plus the full ZIP's backup tools, were checked; neither ZIP contains a
+recovery payload or recovery-writing operation. The adapter produced byte-identical
+block/boot payloads and updater scripts to the previous fork on both fixtures;
+full ZIP signing with the standard test key also passed. These are host-only packaging
 fixtures, **not flashable ROMs**. A complete fresh ROM build and installation
 were not performed as part of this policy change.
 

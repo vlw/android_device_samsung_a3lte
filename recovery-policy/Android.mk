@@ -17,3 +17,25 @@ LOCAL_OVERRIDES_MODULES := \
     linker.recovery otacerts.recovery shell_and_utilities_recovery watchdogd.recovery
 include $(BUILD_PREBUILT)
 endif
+
+# Host resources refer directly to the maintained Lineage files. They are never
+# installed on the phone or copied into the device source tree.
+ifeq ($(TARGET_DEVICE),a3lte)
+include $(CLEAR_VARS)
+LOCAL_MODULE := a3_ota_backuptool
+LOCAL_MODULE_CLASS := ETC
+LOCAL_IS_HOST_MODULE := true
+LOCAL_SRC_FILES := ../../../../vendor/lineage/prebuilt/common/bin/backuptool.sh
+LOCAL_MODULE_STEM := backuptool.sh
+LOCAL_MODULE_PATH := $(HOST_OUT)/etc/a3-ota
+include $(BUILD_PREBUILT)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := a3_ota_backuptool_functions
+LOCAL_MODULE_CLASS := ETC
+LOCAL_IS_HOST_MODULE := true
+LOCAL_SRC_FILES := ../../../../vendor/lineage/prebuilt/common/bin/backuptool.functions
+LOCAL_MODULE_STEM := backuptool.functions
+LOCAL_MODULE_PATH := $(HOST_OUT)/etc/a3-ota
+include $(BUILD_PREBUILT)
+endif
