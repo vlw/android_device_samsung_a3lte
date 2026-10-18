@@ -109,3 +109,19 @@ LOCAL_SRC_FILES := tests/PreviewLayoutTest.cpp
 LOCAL_SHARED_LIBRARIES := libhardware libdl
 LOCAL_PROPRIETARY_MODULE := true
 include $(BUILD_EXECUTABLE)
+
+# Explicit raw bracket sensor probe; never installed in product images.
+include $(CLEAR_VARS)
+LOCAL_MODULE := a3_native_bracket_test
+LOCAL_SRC_FILES := tests/NativeBracketTest.cpp
+LOCAL_SHARED_LIBRARIES := libhardware libcamera_client libutils
+LOCAL_PROPRIETARY_MODULE := true
+include $(BUILD_EXECUTABLE)
+
+# Explicit Bayer sensor diagnostic; never installed in product images.
+include $(CLEAR_VARS)
+LOCAL_MODULE := a3_raw_capture_test
+LOCAL_SRC_FILES := tests/RawCaptureTest.cpp
+LOCAL_SHARED_LIBRARIES := libhardware libcamera_client libutils
+LOCAL_PROPRIETARY_MODULE := true
+include $(BUILD_EXECUTABLE)

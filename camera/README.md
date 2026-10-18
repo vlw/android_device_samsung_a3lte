@@ -246,3 +246,34 @@ Build `a3_preview_layout_test` and run it explicitly on the device to compare
 all 16 rear/front preview dimensions in NV21 and YV12 with actual gralloc
 allocations, without opening sensors. `--baseline` reports original mismatches
 without failing. This diagnostic is not included in product images.
+
+## Front-camera native HDR investigation
+
+The front S5K5E3YX is not advertised as HDR-capable by this wrapper. On the
+matching CSG3 HAL/ISP running on this device, Samsung's normal handshake (1508),
+HDR command (1014) and `hdr-mode=1` accept a `-2,0,2` bracket request but do not
+produce the three raw callbacks. Tests at 2576x1932 and 640x480 both returned
+zero frames; the usual Android SurfaceTexture path also returned zero of three
+frames and reported a capture error after the HDR timeout. The rear control
+using the same diagnostic returned three NV21 frames with clearly separated
+luminance (0.0000, 0.2147, 6.8297 on the covered rear sensor).
+
+The generic Qualcomm interface, without the Samsung handshake, can return
+three front NV21 buffers for `ae-bracket-hdr=AE-Bracket`, but their measured
+mean Y values were 144.3877, 144.4140 and 144.3547. Receiving three buffers is
+therefore insufficient evidence of an exposure bracket. This path is not
+exposed as HDR, and no sequential-JPEG substitute is installed. These results
+concern this matched stock userspace on LOS, not a proof of a sensor hardware
+limitation or a full stock-system test.
+
+`a3_native_bracket_test CAMERA_ID OUTPUT_PREFIX [WIDTH HEIGHT [--standard]]`
+provides an explicit, sensor-opening diagnostic of these two native protocols.
+It bypasses the wrapper, registers the stock module callbacks and uses a
+non-displaying preview. It saves up to three original NV21 buffers and prints
+luminance statistics; its successful capture exit status alone does not certify
+HDR or exposure separation. The target is never included in product images.
+A temporary front-enabled wrapper was used only for the Android-path test and
+was removed afterwards. Ordinary full-resolution front capture was rechecked.
+
+Ultra HDR/gain-map feasibility, RAW probe results, ARM32 codec measurements and
+application-save constraints are documented in [ULTRA_HDR.md](ULTRA_HDR.md).
