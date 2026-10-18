@@ -12,16 +12,13 @@ cc_library_shared {
     srcs: [
         "amplifier.c",
         "tfa.c",
+        "tfa_container.c",
+        "tfa_dsp.c",
     ],
 
     include_dirs: [
         "external/tinyalsa/include",
-        "external/tinycompress/include",
-        "hardware/qcom-caf/sm8350/audio/hal",
-        "hardware/qcom-caf/sm8350/audio/hal/audio_extn",
-        "hardware/qcom-caf/sm8350/audio/hal/msm8916",
-        "system/media/audio_route/include",
-        "system/media/audio_utils/include",
+        "hardware/qcom-caf/msm8916/audio/hal",
     ],
 
     header_libs: [
@@ -31,8 +28,39 @@ cc_library_shared {
 
     shared_libs: [
         "libcutils",
-        "libdl",
         "liblog",
         "libtinyalsa",
     ],
+
+    required: ["a3lte_tfa9895_config"],
+
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+}
+
+prebuilt_etc {
+    name: "a3lte_tfa9895_config",
+    src: "Tfa9895.cnt",
+    filename: "Tfa9895.cnt",
+    vendor: true,
+}
+
+// Built explicitly for diagnostics; neither test is part of PRODUCT_PACKAGES.
+cc_test {
+    name: "a3_tfa_hal_test",
+    vendor: true,
+    gtest: false,
+    srcs: ["tests/hal_test.c"],
+    include_dirs: ["hardware/qcom-caf/msm8916/audio/hal"],
+    header_libs: ["libhardware_headers", "qti_kernel_headers"],
+    shared_libs: ["libcutils", "liblog"],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+}
+
+cc_binary {
+    name: "a3_tfa_diag",
+    vendor: true,
+    srcs: ["tests/device_test.c"],
+    header_libs: ["libhardware_headers"],
+    shared_libs: ["libcutils", "libdl", "liblog"],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
 }

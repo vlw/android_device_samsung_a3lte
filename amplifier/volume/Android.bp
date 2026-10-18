@@ -1,0 +1,19 @@
+android_app {
+    name: "A3TfaVolume",
+    srcs: ["src/**/*.java"],
+    manifest: "AndroidManifest.xml",
+    certificate: "platform",
+    platform_apis: true,
+    privileged: true,
+    system_ext_specific: true,
+    optimize: { enabled: false },
+    required: ["privapp-permissions-a3-tfa"],
+}
+
+prebuilt_etc {
+    name: "privapp-permissions-a3-tfa",
+    src: "privapp-permissions-a3-tfa.xml",
+    sub_dir: "permissions",
+    filename_from_src: true,
+    system_ext_specific: true,
+}

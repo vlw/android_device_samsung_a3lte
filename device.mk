@@ -47,7 +47,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
 	$(LOCAL_PATH)/configs/audio/audio_platform_info.xml:$(TARGET_COPY_OUT_VENDOR)/etc/audio_platform_info.xml
 
-PRODUCT_PACKAGES += audio_amplifier.msm8916
+PRODUCT_PACKAGES += audio_amplifier.msm8916 A3TfaVolume
 
 # Shipping API level
 $(call inherit-product, $(SRC_TARGET_DIR)/product/product_launched_with_k.mk)
