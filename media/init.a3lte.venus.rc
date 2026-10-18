@@ -1,0 +1,5 @@
+# Firmware files are a matched SM-A300FU Android 6 signed set.
+# The kernel otherwise loads /firmware/image before ueventd can use vendor.
+# Only Venus files live here; other firmware names retain their normal fallback.
+on post-fs
+    write /sys/module/firmware_class/parameters/path /vendor/firmware/venus

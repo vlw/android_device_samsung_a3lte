@@ -137,3 +137,6 @@ PRODUCT_BUILD_RECOVERY_IMAGE := false
 PRODUCT_PACKAGES += a3lte_no_recovery_update
 PRODUCT_VENDOR_PROPERTIES += persist.vendor.recovery_update=false
 PRODUCT_HOST_PACKAGES += a3_ota_from_target_files
+
+# Device-specific signed video firmware and selection policy.
+$(call inherit-product, device/samsung/a3lte/media/media.mk)
