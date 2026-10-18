@@ -2,7 +2,7 @@
 
 The image-processing stack is taken from **SM-A300FU A300FUXXU1CSG3, Android 6.0.1**.
 `stock-firmware.json` records original paths and SHA-256 hashes for the unmodified
-OEM binaries. It includes the HAL, daemon, ISP/statistics modules, AEC/AWB/AF,
+OEM binaries (and records the preview-stride compatibility fix below). It includes the HAL, daemon, ISP/statistics modules, AEC/AWB/AF,
 IMX219/S5K5E3YX sensor and Chromatix libraries, SuperShot and JPEG dependencies.
 Device-specific overrides select the matching daemon and JPEG libraries; other
 msm8916 devices keep the common defaults. The unused `libmm-qcamera` test helper
@@ -225,3 +225,24 @@ synthetic test passed all ten dimensions after that boot. Synthetic MP4 files in
 shell_data_file can generate read AVCs from metadata inspection services on this
 permissive engineering build; no broader production policy is added for those
 diagnostic files. Actual sensor image/video quality remains outside these tests.
+
+## Preview stride compatibility
+
+CSG3 `libmmcamera_interface.so::mm_stream_calc_offset_preview` aligns NV12/NV21
+plane strides to 16 pixels. The installed Adreno allocator reports 32-pixel
+alignment: a 720x540 preview is allocated with stride 736, but the original ISP
+layout writes stride 720. This causes vertical corruption and green chroma at
+4:3 photo preview sizes even though the separate full-resolution JPEG is valid.
+528, 880 and 176-pixel previews have the same problem.
+
+`fix_preview_alignment.py` changes four Thumb instruction immediates in the
+verified CSG3 library, aligning both Y and UV widths to 32. The format switch,
+height alignment, offsets, total-length calculation, snapshot/video functions,
+ISP tuning and all advertised resolutions stay intact. The extraction script
+reapplies this idempotent fix and refuses unknown donors. `stock-firmware.json`
+keeps the original hash plus the installed hash and fix description.
+
+Build `a3_preview_layout_test` and run it explicitly on the device to compare
+all 16 rear/front preview dimensions in NV21 and YV12 with actual gralloc
+allocations, without opening sensors. `--baseline` reports original mismatches
+without failing. This diagnostic is not included in product images.

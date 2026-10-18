@@ -149,7 +149,9 @@
     {
       "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_interface.so",
       "stock_path": "/system/lib/libmmcamera_interface.so",
-      "sha256": "63b2340985195ca466ec558fb615561cde3952f4b86c669442fc884ac0cfc957"
+      "sha256": "63b2340985195ca466ec558fb615561cde3952f4b86c669442fc884ac0cfc957",
+      "installed_sha256": "99b2652012b8d9dae798b4d271c81b7ea0935735dd7e48145ff2979cc5e100fb",
+      "fixup": "camera/fix_preview_alignment.py: NV12/NV21 preview width alignment 16 -> 32; four instruction immediates"
     },
     {
       "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_frame_algorithm.so",

@@ -101,3 +101,11 @@ LOCAL_STATIC_LIBRARIES := libbase libarect
 LOCAL_SHARED_LIBRARIES := libhardware liblog libcamera_client libutils libcutils libdl libsecjpeginterface libexif
 LOCAL_PROPRIETARY_MODULE := true
 include $(BUILD_EXECUTABLE)
+
+# Sensor-free comparison of legacy ISP layout and current gralloc.
+include $(CLEAR_VARS)
+LOCAL_MODULE := a3_preview_layout_test
+LOCAL_SRC_FILES := tests/PreviewLayoutTest.cpp
+LOCAL_SHARED_LIBRARIES := libhardware libdl
+LOCAL_PROPRIETARY_MODULE := true
+include $(BUILD_EXECUTABLE)
