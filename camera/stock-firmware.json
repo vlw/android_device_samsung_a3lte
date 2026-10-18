@@ -1,0 +1,395 @@
+{
+  "firmware": "SM-A300FU A300FUXXU1CSG3 Android 6.0.1",
+  "files": [
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_vpe_module.so",
+      "stock_path": "/system/lib/libmmcamera2_vpe_module.so",
+      "sha256": "fed626c8cb22909c49ca3fae8578219bec17fc8c2df1d52ae6709f43075a1119"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_silicon_sr552_eeprom.so",
+      "stock_path": "/system/lib/libmmcamera_silicon_sr552_eeprom.so",
+      "sha256": "5164000c8dd8d736c3c9c23611033187580935e243e1972a996e91f61473fa10"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_imglib.so",
+      "stock_path": "/system/lib/libmmcamera_imglib.so",
+      "sha256": "981153da2bf401008f9e31fd37ec7a266582368dd2380f8a8e9dc7874bc6461f"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_silicon_sr544_eeprom.so",
+      "stock_path": "/system/lib/libmmcamera_silicon_sr544_eeprom.so",
+      "sha256": "e61013c9e02001f1780899bf8d8b81db9df1ec59e9167f8f041eb1037f5e6ae6"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_faceproc.so",
+      "stock_path": "/system/lib/libmmcamera_faceproc.so",
+      "sha256": "10f933fda9a8883485b53c68136a26a4b302e5ee26982b38f3246374d2a40b34"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_tintless_algo.so",
+      "stock_path": "/system/lib/libmmcamera_tintless_algo.so",
+      "sha256": "b3279d2bea9c3ee7fe6d8f989328a07f3feafa3b2794a7a969c9b90f82b69fd1"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_pproc_modules.so",
+      "stock_path": "/system/lib/libmmcamera2_pproc_modules.so",
+      "sha256": "8e046cf2830ba92d127e15c591c3e5df785da838c415bfb78ab22154f577da1b"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_cpp_module.so",
+      "stock_path": "/system/lib/libmmcamera2_cpp_module.so",
+      "sha256": "5192cf56cc5df1782fae9a97c9f6b87d1214bd6b5c53d9dc2fa812c890fa468f"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_zc533_eeprom.so",
+      "stock_path": "/system/lib/libmmcamera_zc533_eeprom.so",
+      "sha256": "a7a5a3197d23a772ff0ab3e0d43ba6d1e5f4eff63250750db8607df9f47f3096"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_hdr_gb_lib.so",
+      "stock_path": "/system/lib/libmmcamera_hdr_gb_lib.so",
+      "sha256": "ea1dc3b136a7b5a70bc17370ae89c594307ff401d98790376db0ee35a2c9ff6f"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_pdafcamif.so",
+      "stock_path": "/system/lib/libmmcamera_pdafcamif.so",
+      "sha256": "434fa7d8330306ce8b2815437e838cdf5d93622ba1fb35022cbe49f9f6be2877"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_is.so",
+      "stock_path": "/system/lib/libmmcamera2_is.so",
+      "sha256": "1871abaf0d6bb291e47692604f2018abd90f80f24ca9a2899c10b6f535f4886a"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_stats_algorithm.so",
+      "stock_path": "/system/lib/libmmcamera2_stats_algorithm.so",
+      "sha256": "fb63729c43e1bdb28fb4ab2143c79109f3246a7d068e49627b331611db96e712"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_stats_modules.so",
+      "stock_path": "/system/lib/libmmcamera2_stats_modules.so",
+      "sha256": "965618f19d71d5a4f4e7d31e7814abd5a3cc742165c5a4082ac6025584277cac"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_lsi_s5k5e3yx_eeprom.so",
+      "stock_path": "/system/lib/libmmcamera_lsi_s5k5e3yx_eeprom.so",
+      "sha256": "5bf73e0ebdc9a7a36d33373fb75d5599985e83bff247892af1803ee546793957"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_dw_dw9807_eeprom.so",
+      "stock_path": "/system/lib/libmmcamera_dw_dw9807_eeprom.so",
+      "sha256": "e8303e199805857815d1a5556effd8fa6d5e2d292be1a9324e466adf43f2ec3f"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_sunny_p12v01m_eeprom.so",
+      "stock_path": "/system/lib/libmmcamera_sunny_p12v01m_eeprom.so",
+      "sha256": "693773dee8039d4f0cc1eddd87b117a1b419230f595142a3b282712db3730c15"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_cac2_lib_13M.so",
+      "stock_path": "/system/lib/libmmcamera_cac2_lib_13M.so",
+      "sha256": "0ed0c58d6e9d116c6adb8dfbb680787393b6bedf4806f4c82f0c993367217591"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_tintless_bg_pca_algo.so",
+      "stock_path": "/system/lib/libmmcamera_tintless_bg_pca_algo.so",
+      "sha256": "b78916be307dc32616b0f1b33c3311f8f785b15673c8c42940c57796ca7f88ca"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_isp_modules.so",
+      "stock_path": "/system/lib/libmmcamera2_isp_modules.so",
+      "sha256": "38474a93b3dfabaf6c01045e749c9ff88d7f019ee7ab0bdc03e5e5eeefed8fa3"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_pdaf.so",
+      "stock_path": "/system/lib/libmmcamera_pdaf.so",
+      "sha256": "bac873932f8016e50e2ca73001e58767fa0853037c52540316533889f7ee581f"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_rohm_brce064gwz_eeprom.so",
+      "stock_path": "/system/lib/libmmcamera_rohm_brce064gwz_eeprom.so",
+      "sha256": "20f4a89aec03dd4aae0d0e1f13f233fbe1aed12dbc4166d29bc6058f8af9af30"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_hdr_lib.so",
+      "stock_path": "/system/lib/libmmcamera_hdr_lib.so",
+      "sha256": "4221b0a52cf5d82747b0c4d9204df931f527e052d87aed18f99f0b223fa24055"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_sunny_p5v23c_eeprom.so",
+      "stock_path": "/system/lib/libmmcamera_sunny_p5v23c_eeprom.so",
+      "sha256": "c2a357f4ae29463e6c635337e250b7e22e372dc50a353e9d1720861df9843fcc"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_iface_modules.so",
+      "stock_path": "/system/lib/libmmcamera2_iface_modules.so",
+      "sha256": "66806aa04acebffd6a5effff594dd2867e7831d89bfa93a93c5f8cfbd6530d93"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_dw_dw9806b_eeprom.so",
+      "stock_path": "/system/lib/libmmcamera_dw_dw9806b_eeprom.so",
+      "sha256": "f43786d8733933b029383fe9ed3f93d7522c8794b08e3258064b0efbd46a979d"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_image_stab.so",
+      "stock_path": "/system/lib/libmmcamera_image_stab.so",
+      "sha256": "d6b8119bf3f7bf99370cd00bf2435fc6350fd67504e9cb349c31c0c52fbfe4f1"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_imglib_modules.so",
+      "stock_path": "/system/lib/libmmcamera2_imglib_modules.so",
+      "sha256": "3323815b17f73d65110b738d4970f27433f922c02fa537066466c8a0cd323c92"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_imx219.so",
+      "stock_path": "/system/lib/libmmcamera_imx219.so",
+      "sha256": "65d9bf27f80fa4bced9afeee8e711685682b7e4950e0cfbbf91ca7d3cd892871"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_interface.so",
+      "stock_path": "/system/lib/libmmcamera_interface.so",
+      "sha256": "63b2340985195ca466ec558fb615561cde3952f4b86c669442fc884ac0cfc957"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_frame_algorithm.so",
+      "stock_path": "/system/lib/libmmcamera2_frame_algorithm.so",
+      "sha256": "0bb4586cb83e56011b764bc361dc8797c305bbbd7d75cf4c4b44b482465b25be"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_s5k5e3yx.so",
+      "stock_path": "/system/lib/libmmcamera_s5k5e3yx.so",
+      "sha256": "1634a5bde0cb484c5be95b779953ddf853cd84d458c314e2184a81a8cb432380"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_q3a_core.so",
+      "stock_path": "/system/lib/libmmcamera2_q3a_core.so",
+      "sha256": "5835559af445b7eb9c5cded3bb426ae5093560884c164b348fa5660d2ced6a7f"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_wnr_module.so",
+      "stock_path": "/system/lib/libmmcamera2_wnr_module.so",
+      "sha256": "518018dda03027de8025799264ff62f8dbbb4983fb9891a6b2ca1c98661502ca"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_m24128s_eeprom.so",
+      "stock_path": "/system/lib/libmmcamera_m24128s_eeprom.so",
+      "sha256": "b1c31ec4f8049215e6b262f2afe49e28571d9ad32e3942fddce7b8d8bf995ccc"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera_wavelet_lib.so",
+      "stock_path": "/system/lib/libmmcamera_wavelet_lib.so",
+      "sha256": "d39017cfb7c538aead5d94032c99c1cb7fd03e52fe3fb412e40a175add63cfc6"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_c2d_module.so",
+      "stock_path": "/system/lib/libmmcamera2_c2d_module.so",
+      "sha256": "465d17c3cd2695755611d0372921ac6f5fcb7ebc84481f96ee2c9fcc77aa4269"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmcamera2_sensor_modules.so",
+      "stock_path": "/system/lib/libmmcamera2_sensor_modules.so",
+      "sha256": "e723edc910ba5409c428806f62167d8f2d289fc76f532dacf846e4f40da976e0"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/liboemcamera.so",
+      "stock_path": "/system/lib/liboemcamera.so",
+      "sha256": "24d0e10decbcdc25915ff292d61bbb45a07e88e08be280463075c3b40ecff071"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/hw/camera.vendor.msm8916.so",
+      "stock_path": "/system/lib/hw/camera.msm8916.so",
+      "sha256": "8507b6ddd8e127c822734a3323e6eab584abf3caa3f5be0ed77c5f9643f1646f"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmjpeg.so",
+      "stock_path": "/system/vendor/lib/libmmjpeg.so",
+      "sha256": "71de8996864b2358b24a5a7e990b9fcd90424e5674495747ef691d6aa5544f56"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmqjpeg_codec.so",
+      "stock_path": "/system/vendor/lib/libmmqjpeg_codec.so",
+      "sha256": "f54beb9212dd01072ef4e91bf553d3e0a2db5db422a4b5deaaa91753380ea343"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libqomx_core.so",
+      "stock_path": "/system/lib/libqomx_core.so",
+      "sha256": "c537a8a3c0c38e5ab54db298edac8167ddfc904e052db8b88dd9a968c34e9e65"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/bin/mm-qcamera-daemon",
+      "stock_path": "/system/bin/mm-qcamera-daemon",
+      "sha256": "93d5bc1f47c156aa7c894a6e69fc582bd164fdf6df7e2bf7a2001b1b914e0c93"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libsecjpegboard.so",
+      "stock_path": "/system/lib/libsecjpegboard.so",
+      "sha256": "d992cbd6a7e2bd10dda54b19ef10c6498e0ff0c19489a7d16207a837adf370cd"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libQjpeg.so",
+      "stock_path": "/system/lib/libQjpeg.so",
+      "sha256": "8079ef4742ad28350a5190d88511204c9510ecdda9c067bf5df46c88630d5368"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libsupershot.so",
+      "stock_path": "/system/lib/libsupershot.so",
+      "sha256": "88cb50e344e2649499eaff1fe2f56318b6a7b89bd80d7792748a699c4b8c2e7d"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libAl_Awb_Sp.so",
+      "stock_path": "/system/lib/libAl_Awb_Sp.so",
+      "sha256": "31dba33c7b2d2e631d2f9544b7b111ec3113dff66428d22f59cb0f91de070dbf"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_imx219_default_video.so",
+      "stock_path": "/system/lib/libchromatix_imx219_default_video.so",
+      "sha256": "cb1caeed19e61bf3ada1e8c929577d688b3c91d1720a898699b68d80641b0d52"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_imx219_liveshot.so",
+      "stock_path": "/system/lib/libchromatix_imx219_liveshot.so",
+      "sha256": "2df6dfe3a93ac1f5599f73ad6cb14865907518d35a513968b64918b3c14c5a94"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_imx219_preview.so",
+      "stock_path": "/system/lib/libchromatix_imx219_preview.so",
+      "sha256": "39cccde903bce846830fa1659f78949bc6627fabbda6022cb4887df5ba05e544"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_s5k5e3yx_wide_vt.so",
+      "stock_path": "/system/lib/libchromatix_s5k5e3yx_wide_vt.so",
+      "sha256": "28b781a5310e8165c36a95d4bb696ee589770eab69bac45e76b49804876d3c0e"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_imx219_zslshot.so",
+      "stock_path": "/system/lib/libchromatix_imx219_zslshot.so",
+      "sha256": "6ff003768c568ae05d9fae2015c816608162aa71c3af0c759b92d101250aacc0"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libactuator_dw9804_vasta3g_camcorder.so",
+      "stock_path": "/system/lib/libactuator_dw9804_vasta3g_camcorder.so",
+      "sha256": "6ec59a1f98b76d4398ddc7bce8b6ba7f47be633e0b5eb0890b88f183b4ec86dc"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_imx219_snapshot.so",
+      "stock_path": "/system/lib/libchromatix_imx219_snapshot.so",
+      "sha256": "6fe5c32c327a0a5707fd9ca18210c35a7a0af3fb41e4a242b9d2190d72c4ee6b"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_s5k5e3yx_wide_snapshot.so",
+      "stock_path": "/system/lib/libchromatix_s5k5e3yx_wide_snapshot.so",
+      "sha256": "6be5773aae817fff85e4f5b43df5e86e3f8bf63654635241506f3ae611137868"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_s5k5e3yx_wide_preview.so",
+      "stock_path": "/system/lib/libchromatix_s5k5e3yx_wide_preview.so",
+      "sha256": "7855da486253bab8930d31bb9b952a5da3ba71eb54348f31990f3f4af4a57fc1"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_s5k5e3yx_wide_vt_20fps.so",
+      "stock_path": "/system/lib/libchromatix_s5k5e3yx_wide_vt_20fps.so",
+      "sha256": "151d53e80979abed132c0cd14c3567b068224da9eb88830fc4198b30f261f5f8"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libawb_algo_rear_al.so",
+      "stock_path": "/system/lib/libawb_algo_rear_al.so",
+      "sha256": "4f952fd5e2ed645c632f19a520f27c8102c94d2903a7270c5f5bc7e0556b58bb"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libawb_algo_front_al.so",
+      "stock_path": "/system/lib/libawb_algo_front_al.so",
+      "sha256": "8a3586fb02a1a89f943bcd9ea1ed031c189c6cdc52dc48ef4ac43bf0af0eba00"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_s5k5e3yx_wide_common.so",
+      "stock_path": "/system/lib/libchromatix_s5k5e3yx_wide_common.so",
+      "sha256": "523660a96ef70a959046cd24fb0bef890f540259a700cf50b6de3c31ea41ae3f"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libactuator_dw9804_vasta3g_camera.so",
+      "stock_path": "/system/lib/libactuator_dw9804_vasta3g_camera.so",
+      "sha256": "81e64e43ff49de1b2342a354714875a6744246810ba30565b83180ad56849eb2"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libaf_algo_rear.so",
+      "stock_path": "/system/lib/libaf_algo_rear.so",
+      "sha256": "3ff421f19670cb80f4a877d2f31390ae88e55e8b06585d29a49588c26fb71088"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libAl_Awb.so",
+      "stock_path": "/system/lib/libAl_Awb.so",
+      "sha256": "5ac769f05130558f575264b21e70298510254d727eaec4dcb7c7e2d88b81d8bc"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libmmjpeg_interface.so",
+      "stock_path": "/system/lib/libmmjpeg_interface.so",
+      "sha256": "6739f724eb9f20479868e4c0c30bd64e12201bd3f3c58433571bf33417664ca1"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_imx219_common.so",
+      "stock_path": "/system/lib/libchromatix_imx219_common.so",
+      "sha256": "68cd5ea6843ab431a53263567c4dbe10fe5a62b10ccb5341b94a098355fb3cb9"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_s5k5e3yx_wide_zslshot.so",
+      "stock_path": "/system/lib/libchromatix_s5k5e3yx_wide_zslshot.so",
+      "sha256": "4a60f55c10c3a6a3afd88c10c236a7c9faebb2115d41e58e8f427392bf84503c"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libaec_algo_front.so",
+      "stock_path": "/system/lib/libaec_algo_front.so",
+      "sha256": "de8b7f70345044fdb9080bc6b5eb24fe6583b90250232bd94f5e05ccfa166342"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libaec_algo_rear.so",
+      "stock_path": "/system/lib/libaec_algo_rear.so",
+      "sha256": "9b9890c90f5e9aee2775477fab3ed8f02d1fc9961120764167e99c49c34c9f8c"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_imx219_panorama.so",
+      "stock_path": "/system/lib/libchromatix_imx219_panorama.so",
+      "sha256": "a74b71af63cbc98677e28d250aa89cf8b164871ee12710c3ee1930ba7ba895bb"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_imx219_common_res0.so",
+      "stock_path": "/system/lib/libchromatix_imx219_common_res0.so",
+      "sha256": "eb16acbdda37962e9029f900d0649dd2ec0cbefaee728ce8b0aa3ac2367f6be7"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_s5k5e3yx_wide_video.so",
+      "stock_path": "/system/lib/libchromatix_s5k5e3yx_wide_video.so",
+      "sha256": "3bdcca31f58afcd6bf40b60149bdf321bf9c23c7e60378422288e0f66fbf8a4b"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_s5k5e3yx_wide_vt_30fps.so",
+      "stock_path": "/system/lib/libchromatix_s5k5e3yx_wide_vt_30fps.so",
+      "sha256": "9e05a19e8326d8bff547c4162a300ce97fae0917736b3b9a684042f22537c06d"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_s5k5e3yx_wide_vt_hd.so",
+      "stock_path": "/system/lib/libchromatix_s5k5e3yx_wide_vt_hd.so",
+      "sha256": "c14d1fd9d107b2cda0ebd01fdc1cba3731d574cdc1d24322d18a2e47146ce7fd"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libchromatix_s5k5e3yx_wide_pip.so",
+      "stock_path": "/system/lib/libchromatix_s5k5e3yx_wide_pip.so",
+      "sha256": "3fc39f6fa677d86a3052401b54d0e023496a229c15921fee597bd9893ee99daa"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libqomx_jpegenc.so",
+      "stock_path": "/system/vendor/lib/libqomx_jpegenc.so",
+      "sha256": "644620c8290383fa7f8f87c2027922eead9514d27a6f83fca717bd9b04c2133c"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libjpegehw.so",
+      "stock_path": "/system/vendor/lib/libjpegehw.so",
+      "sha256": "5fdc8e90998a7557a51412bfa6b7445c40e8a883d3025e1257701c40a0135f8c"
+    },
+    {
+      "file": "vendor/samsung/a3lte/proprietary/vendor/lib/libjpegdhw.so",
+      "stock_path": "/system/vendor/lib/libjpegdhw.so",
+      "sha256": "516d10a41ca20e406bf0a59e29bb8bd6ea77b6c889159deba7782cde43f515a6"
+    }
+  ]
+}

@@ -15,6 +15,11 @@
 # limitations under the License.
 #
 
+# Per-device media profiles must be selected before inheriting the common config.
+DEVICE_MEDIA_PROFILES := device/samsung/a3lte/configs/media_profiles_V1_0.xml
+DEVICE_CAMERA_DAEMON := vendor/samsung/a3lte/proprietary/vendor/bin/mm-qcamera-daemon
+DEVICE_CAMERA_LIBS := vendor/samsung/a3lte/proprietary/vendor/lib
+
 # Inherit from msm8916-common
 $(call inherit-product, device/samsung/msm8916-common/msm8916.mk)
 
@@ -59,7 +64,6 @@ TARGET_SCREEN_WIDTH := 540
 # Camera
 PRODUCT_PACKAGES += \
     camera.msm8916 \
-    libmm-qcamera \
     Snap
 
 PRODUCT_PACKAGES += \
