@@ -20,6 +20,9 @@ DEVICE_MEDIA_PROFILES := device/samsung/a3lte/configs/media_profiles_V1_0.xml
 DEVICE_CAMERA_DAEMON := vendor/samsung/a3lte/proprietary/vendor/bin/mm-qcamera-daemon
 DEVICE_CAMERA_LIBS := vendor/samsung/a3lte/proprietary/vendor/lib
 
+# Keep the original Samsung radio behind the device IMS-state adaptor.
+DEVICE_RIL_LIBPATH := /vendor/lib/liba3ims_radio.so
+
 # Inherit from msm8916-common
 $(call inherit-product, device/samsung/msm8916-common/msm8916.mk)
 

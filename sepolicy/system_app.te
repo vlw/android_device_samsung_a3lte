@@ -1,0 +1,2 @@
+# A3Ims uses a bounded, UID-checked state socket in the device RIL adaptor.
+allow system_app rild:unix_stream_socket connectto;

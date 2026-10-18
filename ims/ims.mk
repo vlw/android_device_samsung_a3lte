@@ -2,6 +2,7 @@
 PRODUCT_PACKAGES += \
     A3Ims \
     libevs_float \
+    liba3ims_radio \
     A3ImsFrameworkOverlay \
     A3ImsTelephonyOverlay \
     A3ImsCarrierOverlay

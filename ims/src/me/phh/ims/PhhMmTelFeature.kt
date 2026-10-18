@@ -145,6 +145,9 @@ class PhhMmTelFeature(
             TAG,
             "Final MMTEL capabilities=$finalCapabilities perTech=$enabledMmTelCapabilitiesByRadioTech"
         )
+        PhhImsService.instance?.legacyRadio?.update(slotId, sipRegistered,
+            (finalCapabilities and MmTelCapabilities.CAPABILITY_TYPE_VOICE) != 0,
+            (finalCapabilities and MmTelCapabilities.CAPABILITY_TYPE_SMS) != 0)
         notifyCapabilitiesStatusChanged(
             android.telephony.ims.feature.MmTelFeature.MmTelCapabilities(finalCapabilities)
         )

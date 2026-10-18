@@ -65,3 +65,13 @@ cc_library_shared {
     compile_multilib: "32",
     cflags: ["-Wall", "-Werror"],
 }
+
+cc_library_shared {
+    name: "liba3ims_radio",
+    vendor: true,
+    srcs: ["native/ims_radio.cpp"],
+    include_dirs: ["device/samsung/msm8916-common/ril/include"],
+    shared_libs: ["libdl", "liblog"],
+    compile_multilib: "32",
+    cflags: ["-Wall", "-Werror", "-DRIL_SHLIB"],
+}

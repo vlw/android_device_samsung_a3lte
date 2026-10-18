@@ -23,6 +23,7 @@ class PhhImsService : ImsService() {
     }
 
     private val receiver = PhhImsBroadcastReceiver()
+    val legacyRadio = LegacySamsungImsRadio()
 
     private val mmTelFeaturesBySlot = mutableMapOf<Int, PhhMmTelFeature>()
     private val configsBySlot = mutableMapOf<Int, PhhImsConfig>()
@@ -168,6 +169,7 @@ class PhhImsService : ImsService() {
     override fun onDestroy() {
         Rlog.d(TAG, "onDestroy")
         unregisterReceiver(receiver)
+        legacyRadio.close()
         mmTelFeaturesBySlot.values.forEach { it.onFeatureRemoved() }
         mmTelFeaturesBySlot.clear()
         configsBySlot.clear()
