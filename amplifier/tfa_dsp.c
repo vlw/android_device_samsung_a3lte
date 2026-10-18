@@ -183,7 +183,7 @@ static int agc_insert(struct tfa_dsp *d)
     return d->drc_supported ? rpc_write(d, 1, 0x10, zero, sizeof(zero)) : 0;
 }
 
-int tfa_dsp_load_profile(struct tfa_dsp *d, unsigned int profile, unsigned int step)
+static int load_profile(struct tfa_dsp *d, unsigned int profile, unsigned int step, bool live)
 {
     if (profile >= TFA_PROFILE_COUNT) return -EINVAL;
     const struct tfa_profile *p = &d->container->profiles[profile];
@@ -197,20 +197,35 @@ int tfa_dsp_load_profile(struct tfa_dsp *d, unsigned int profile, unsigned int s
     float attenuation;
     memcpy(&attenuation, &bits, sizeof(attenuation));
     if (!isfinite(attenuation) || attenuation > 0 || attenuation < -127.5f) return -EINVAL;
-    int rc = rpc_write(d, 1, 0x0d, vstep + 4, TFA_PRESET_BYTES);
+    const uint8_t *old = live ? p->vsteps.data + 38 + d->vstep * TFA_VSTEP_BYTES : NULL;
+    int rc = 0;
+    if (!old || memcmp(old + 4, vstep + 4, TFA_PRESET_BYTES))
+        rc = rpc_write(d, 1, 0x0d, vstep + 4, TFA_PRESET_BYTES);
     for (unsigned int i = 0; !rc && i < 10; ++i) {
         const uint8_t *filter = vstep + 4 + TFA_PRESET_BYTES + i * TFA_FILTER_BYTES;
         const uint8_t disabled[18] = {0x80};
-        rc = rpc_write(d, 2, i + 1, filter[18] ? filter : disabled, 18);
+        const uint8_t *previous = old ? old + 4 + TFA_PRESET_BYTES + i * TFA_FILTER_BYTES : NULL;
+        const uint8_t *coefficients = filter[18] ? filter : disabled;
+        if (!previous || memcmp(previous[18] ? previous : disabled, coefficients, 18))
+            rc = rpc_write(d, 2, i + 1, coefficients, 18);
     }
-    if (!rc) rc = update_reg(d, REG_AUDIO, 0xff00, (uint16_t)(-2 * attenuation) << 8);
-    if (!rc && d->drc_supported) rc = rpc_write(d, 1, 0x0f, p->drc.data + 36 + 381, 381);
+    /* Avoid even a volume-register write when Android owns gain. EQ writes
+     * reset filter state, and reloading unchanged DRC can disturb its envelope. */
+    const uint8_t *old_gain = live ? (d->applied_software_volume ? p->vsteps.data + 38 : old) : NULL;
+    if (!rc && (!old_gain || memcmp(old_gain, gain_step, 4)))
+        rc = update_reg(d, REG_AUDIO, 0xff00, (uint16_t)(-2 * attenuation) << 8);
+    if (!rc && !live && d->drc_supported) rc = rpc_write(d, 1, 0x0f, p->drc.data + 36 + 381, 381);
     if (!rc) {
         d->profile = profile;
         d->vstep = step;
         d->applied_software_volume = d->software_volume;
     }
     return rc;
+}
+
+int tfa_dsp_load_profile(struct tfa_dsp *d, unsigned int profile, unsigned int step)
+{
+    return load_profile(d, profile, step, false);
 }
 
 static int load_patch(struct tfa_dsp *d)
@@ -344,6 +359,18 @@ int tfa_dsp_start(struct tfa_dsp *d, unsigned int profile, unsigned int step)
         rc = -EAGAIN;
         goto fail;
     }
+    /* Same-profile volume changes are live DSP transactions. Do not enter
+     * the startup/profile-switch mute sequence, or even its unmute/5 ms delay.
+     * Read hardware state first: a reset/powerdown must take full recovery. */
+    if (d->powered && d->configured && !(system & SYS_POWERDOWN) &&
+        (system & SYS_CONFIGURED) && !(status & (STATUS_COLD | 0x2000)) &&
+        d->profile == (int)profile) {
+        if (d->vstep == step && d->software_volume == d->applied_software_volume) return 0;
+        rc = load_profile(d, profile, step, true);
+        if (rc) goto fail;
+        return 0;
+    }
+    if (system & SYS_POWERDOWN) d->powered = false;
     if (!d->configured || (status & (STATUS_COLD | 0x2000)) || !(system & SYS_CONFIGURED)) {
         d->configured = false;
         rc = cold_start(d);

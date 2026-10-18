@@ -8,6 +8,9 @@ import android.media.AudioTrack;
  * Restores the original media index and mute state even on assertion failure. */
 public final class VolumeIntegrationTest {
     public static void main(String[] args) throws Exception {
+        // Shell input key injection can be consumed by the foreground window.
+        // Direct mode exercises the same AudioService volume changes headlessly.
+        boolean direct = args.length > 0 && "--direct-volume".equals(args[0]);
         android.os.Looper.prepareMainLooper();
         Class<?> activityThread = Class.forName("android.app.ActivityThread");
         Object thread = activityThread.getMethod("systemMain").invoke(null);
@@ -38,12 +41,14 @@ public final class VolumeIntegrationTest {
             }
             manager.setStreamVolume(stream, maximum / 3, 0);
             Thread.sleep(500);
-            new ProcessBuilder("input", "keyevent", "KEYCODE_VOLUME_UP").start().waitFor();
+            if (direct) manager.adjustStreamVolume(stream, AudioManager.ADJUST_RAISE, 0);
+            else new ProcessBuilder("input", "keyevent", "KEYCODE_VOLUME_UP").start().waitFor();
             Thread.sleep(700);
             int up = manager.getStreamVolume(stream);
             System.out.println("button-up=" + up + "/" + maximum);
             if (up != maximum / 3 + 1) throw new AssertionError("Volume-up was not applied");
-            new ProcessBuilder("input", "keyevent", "KEYCODE_VOLUME_DOWN").start().waitFor();
+            if (direct) manager.adjustStreamVolume(stream, AudioManager.ADJUST_LOWER, 0);
+            else new ProcessBuilder("input", "keyevent", "KEYCODE_VOLUME_DOWN").start().waitFor();
             Thread.sleep(700);
             int down = manager.getStreamVolume(stream);
             System.out.println("button-down=" + down + "/" + maximum);
@@ -98,7 +103,8 @@ public final class VolumeIntegrationTest {
             System.out.println("restored=" + manager.getStreamVolume(stream) + " muted="
                     + manager.isStreamMute(stream));
         }
-        System.out.println("Android volume and button integration passed");
+        System.out.println(direct ? "Android volume integration passed (direct adjustments)"
+                : "Android volume and button integration passed");
         System.exit(0);
     }
 

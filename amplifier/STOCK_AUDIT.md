@@ -9,7 +9,7 @@ equivalence of the lifecycle, recovery or Android volume integration.
 | OEM functionality | Native status / relevance |
 | --- | --- |
 | `speakeron`, `speakeroff`, `switchcase`, `iscoldboot`, `disablei2soutput` | Implemented by checked start/stop/profile and hardware-status paths. Warm startup restores I2S output; cold startup restores the patch/model/configuration. |
-| Preset, EQ, DRC, volume step, attenuation | All 75 manual profile/step payloads match both stocks. Automatic Android volume selects the same tuning with full-volume hardware gain to avoid double attenuation; see README. Step changes reload tuning with digital mute. |
+| Preset, EQ, DRC, volume step, attenuation | All 75 manual profile/step payloads match both stocks. Automatic Android volume selects the same tuning with full-volume hardware gain to avoid double attenuation; see README. Same-profile step changes update only changed preset/EQ/gain in place, without mute or DRC reload; startup and profile changes remain muted. |
 | Firmware/config/speaker model, DSP features and AGC gain insertion | Implemented for this chip and stock container, including DRC feature fallback. |
 | Container device/profile registers and bitfields | Every descriptor used by this container is supported. Generic support for other chips, containers and file formats is deliberately rejected, rather than partially applied. |
 | RPC ACK, RPC status, parameter transfer and signed 24-bit memory | Implemented with bounded waits and propagated errors. |

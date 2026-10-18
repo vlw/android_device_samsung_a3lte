@@ -22,6 +22,8 @@ struct bus {
     int fault_after;
     int operations;
     int32_t memory;
+    unsigned int interruptions, sleeps, presets, filters, drcs, audio_writes;
+    uint8_t preset[TFA_PRESET_BYTES], eq[10][18], drc[381];
 };
 
 static int operation(struct bus *b)
@@ -110,6 +112,9 @@ static int write_bus(void *context, uint8_t reg, const void *data, size_t size)
     }
     if (size == 2) {
         uint16_t value = (uint16_t)in[0] << 8 | in[1];
+        if ((reg == 9 && ((b->reg[9] ^ value) & 0x19)) ||
+            (reg == 6 && ((b->reg[6] ^ value) & 0x20))) ++b->interruptions;
+        if (reg == 6) ++b->audio_writes;
         if (reg == 9 && (b->reg[9] & 1) && !(value & 1) && b->clear_ocp_on_powerup)
             b->reg[0] &= ~0x20;
         b->reg[reg] = value;
@@ -127,6 +132,19 @@ static int write_bus(void *context, uint8_t reg, const void *data, size_t size)
         }
         if (reg == 0x70 && value == 0x112 && b->bytes) {
             uint8_t header[] = {b->module, b->parameter, b->bytes & 255, b->bytes >> 8};
+            if (b->module == 1 && b->parameter == 0x0d) {
+                assert(b->bytes == sizeof(b->preset));
+                memcpy(b->preset, b->payload, b->bytes);
+                ++b->presets;
+            } else if (b->module == 1 && b->parameter == 0x0f) {
+                assert(b->bytes == sizeof(b->drc));
+                memcpy(b->drc, b->payload, b->bytes);
+                ++b->drcs;
+            } else if (b->module == 2 && b->parameter >= 1 && b->parameter <= 10) {
+                assert(b->bytes == 18);
+                memcpy(b->eq[b->parameter - 1], b->payload, b->bytes);
+                ++b->filters;
+            }
             trace(b, header, sizeof(header));
             trace(b, b->payload, b->bytes);
         }
@@ -140,7 +158,8 @@ static int write_bus(void *context, uint8_t reg, const void *data, size_t size)
 
 static void sleep_bus(void *context, unsigned int usec)
 {
-    (void)context;
+    struct bus *b = context;
+    ++b->sleeps;
     assert(usec <= 12500);
 }
 
@@ -297,6 +316,48 @@ int main(int argc, char **argv)
     b.reg[0] |= 0x2800;
     assert(tfa_dsp_check(&d, 0, 14) == 1);
     assert(d.vstep == 14 && d.applied_software_volume && b.reg[6] >> 8 == 2);
+    /* Every pair of steps, both gain modes: live writes must result in the
+     * same DSP state as a full OEM load, without mute/power or settle sleeps. */
+    for (unsigned int profile = 0; profile < TFA_PROFILE_COUNT; ++profile) {
+        for (unsigned int from = 0; from < c.profiles[profile].steps; ++from) {
+            for (unsigned int to = 0; to < c.profiles[profile].steps; ++to) {
+                for (unsigned int automatic = 0; automatic < 2; ++automatic) {
+                    reset(&b);
+                    d = device(&b, &c);
+                    d.software_volume = automatic;
+                    assert(!tfa_dsp_start(&d, profile, from));
+                    b.interruptions = b.sleeps = b.presets = b.filters = b.drcs = b.audio_writes = 0;
+                    assert(!tfa_dsp_start(&d, profile, to));
+                    assert(!b.interruptions && !b.sleeps && !b.drcs);
+                    assert(!(b.reg[6] & 0x20) && (b.reg[9] & 0x19) == 0x18);
+                    if (automatic) assert(!b.audio_writes);
+                    if (from == to) assert(!b.presets && !b.filters && !b.audio_writes);
+                    struct bus full;
+                    reset(&full);
+                    struct tfa_dsp expected = device(&full, &c);
+                    expected.software_volume = automatic;
+                    assert(!tfa_dsp_load_profile(&expected, profile, to));
+                    assert(!memcmp(b.preset, full.preset, sizeof(b.preset)));
+                    assert(!memcmp(b.eq, full.eq, sizeof(b.eq)));
+                    assert(!memcmp(b.drc, full.drc, sizeof(b.drc)));
+                    assert((b.reg[6] >> 8) == (full.reg[6] >> 8));
+                    assert(d.vstep == to && d.powered && d.configured);
+                }
+            }
+        }
+    }
+    /* A live RPC failure still shuts down safely; next request recovers fully. */
+    reset(&b);
+    d = device(&b, &c);
+    d.software_volume = true;
+    assert(!tfa_dsp_start(&d, 0, 0));
+    b.rpc_error = 3;
+    assert(tfa_dsp_start(&d, 0, 14) == -EREMOTEIO);
+    assert(!d.powered && !d.configured && (b.reg[9] & 1));
+    b.rpc_error = 0;
+    assert(!tfa_dsp_start(&d, 0, 14));
+    assert(d.powered && d.configured && d.vstep == 14);
+    fprintf(stderr, "all live volume transitions preserve OEM DSP state without mute/power/delay\n");
     fprintf(stderr, "container, lifecycle, RPC and fault-injection checks passed\n");
     return 0;
 }

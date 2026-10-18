@@ -75,6 +75,13 @@ Samsung's AudioPolicyManager sends `maxIndex - index` as `TFA_SETVOLUME`.
 rescales it for this ROM's configurable ranges (currently 25 media and 7 voice
 indices). Music index zero remains Android mute, sharing the lowest DSP preset.
 
+Volume changes within an already running profile update the DSP in place, without
+digital mute, amplifier power cycling or the startup settling delay. Only changed
+presets and EQ coefficients are sent; profile-wide DRC and unchanged filters are
+retained. Repeated snapshots selecting the same step do not rewrite the DSP.
+Cold start, route/profile changes and protection recovery retain their muted
+configuration sequence; a failed live transfer still shuts down safely.
+
 Automatic mode loads the selected stock preset/EQ/DRC but holds the chip volume
 register at that profile's full-volume attenuation (-1 dB for music, 0 dB for
 speech). Android already applies its stream gain; applying the step's additional
@@ -123,7 +130,11 @@ It covers all container truncations, bad CRC/indices, I2C failures, RPC error an
 timeout handling, protection faults, power loss, profile transitions, and all
 75 OEM payload comparisons, plus 75 automatic-volume comparisons which differ
 only in the deliberately retained full-volume hardware gain. It also checks
-stock index mapping, range scaling, monotonicity and mode transitions.
+stock index mapping, range scaling, monotonicity and mode transitions. All 1,170
+same-profile step transitions (both gain modes) are checked for equivalent final
+preset/EQ/DRC/gain, no mute/power transitions, no settling sleeps, no DRC reload,
+and no hardware-gain writes in automatic mode. A live RPC failure must shut down
+and recover through full initialization.
 
 After lunch, build `m audio_amplifier.msm8916 A3TfaVolume a3_tfa_hal_test a3_tfa_diag`.
 The tests are explicit diagnostic targets, not production packages:
@@ -144,6 +155,8 @@ The tests are explicit diagnostic targets, not production packages:
   DSP volume on the same silent media PCM without changing Android mode or
   placing a call. It restores the original media/voice indices and media mute
   state in `finally`. Bridge and native HAL logs show the index-to-DSP transitions.
+  Use `--direct-volume` for AudioManager raise/lower adjustments when injected
+  key events are consumed by the foreground window.
 
 Automatic volume was verified on-device at music indices 1/8/16/25 of 25
 (DSP steps 14/10/5/0), with volume buttons 8→9→8 (steps 10→9→10), mute,
@@ -164,3 +177,11 @@ For a complete rollback of the automatic bridge, remove its APK directory
 `/system_ext/priv-app/A3TfaVolume` and matching
 `/system_ext/etc/permissions/privapp-permissions-a3-tfa.xml` together and reboot.
 Keep the allowlist present whenever the privileged APK is installed.
+
+The live-volume fix was installed and checked on 2026-10-19 without rebooting
+(the kernel boot ID remained unchanged). Only the audio services were restarted
+to reload the HAL. All profile/route hardware diagnostics and the direct-volume
+Android integration test passed with digital silence; original indices and mute
+state were restored. Injected Volume Up did not change the index in that session,
+so key injection was not counted as passing. Audible continuity has not been
+measured acoustically. Backup and results: `out/tfa-diagnostics/2026-10-19/live-volume/`.
