@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<carrier_config_list>
+    <!-- This ImsService has no IMS USSD or UT implementation. Keep modem CS
+         handling for dialled codes and TelephonyManager.sendUssdRequest. -->
+    <carrier_config>
+        <int name="carrier_ussd_method_int" value="2"/>
+        <boolean name="carrier_supports_ss_over_ut_bool" value="false"/>
+    </carrier_config>
+    <!-- AAPT coerces a raw mnc="01" attribute to integer 1. Use the
+         Android carrier ID for A1 Belarus to keep the filter exact. -->
+    <carrier_config mcc="257" cid="568">
+        <boolean name="carrier_volte_available_bool" value="true"/>
+        <boolean name="carrier_volte_provisioning_required_bool" value="false"/>
+        <boolean name="carrier_vt_available_bool" value="false"/>
+        <boolean name="carrier_wfc_ims_available_bool" value="false"/>
+        <string name="config_ims_mmtel_package_override_string">me.phh.ims</string>
+    </carrier_config>
+</carrier_config_list>

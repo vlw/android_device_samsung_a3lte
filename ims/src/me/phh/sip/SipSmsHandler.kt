@@ -1,0 +1,448 @@
+// SPDX-License-Identifier: GPL-2.0
+package me.phh.sip
+
+import android.content.Context
+import android.net.Uri
+import android.telephony.Rlog
+import android.telephony.SmsManager
+import java.io.OutputStream
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
+
+internal class SipSmsHandler(
+    private val tag: String,
+    private val ctxt: Context,
+    private val subId: Int,
+    private val carrierSettings: SipCarrierSettings,
+    private val realmProvider: () -> String,
+    private val commonHeadersProvider: () -> SipHeadersMap,
+    private val mySipProvider: () -> String,
+    private val writerProvider: () -> OutputStream,
+    private val responseCallbackSetter: (String, (SipResponse) -> Boolean) -> Unit,
+    private val smsSipFailureListener: (String, Int) -> Unit = { _, _ -> },
+    private val timeoutScheduler: (Long, () -> Unit) -> Unit,
+) {
+    var onSmsReceived: ((Int, String, ByteArray) -> Unit)? = null
+    var onSmsStatusReportReceived: ((Int, String, ByteArray) -> Unit)? = null
+
+    private val smsLock = ReentrantLock()
+    private var smsToken = 0
+    private val smsHeadersMap = mutableMapOf<Int, smsHeaders>()
+
+    private data class PendingOutgoingSms(
+        val callId: String,
+        val ref: Int,
+        val successCb: () -> Unit,
+        val failCb: () -> Unit,
+    )
+
+    private val pendingOutgoingSmsByCallId = mutableMapOf<String, PendingOutgoingSms>()
+    private val pendingOutgoingSmsByRef = mutableMapOf<Int, PendingOutgoingSms>()
+
+    private fun smsRefToInt(ref: Byte): Int = ref.toInt() and 0xff
+
+    private fun rememberPendingOutgoingSms(
+        callId: String,
+        ref: Int,
+        successCb: () -> Unit,
+        failCb: () -> Unit,
+    ) {
+        val pending = PendingOutgoingSms(
+            callId = callId,
+            ref = ref and 0xff,
+            successCb = successCb,
+            failCb = failCb,
+        )
+
+        smsLock.withLock {
+            pendingOutgoingSmsByCallId[callId] = pending
+            pendingOutgoingSmsByRef[pending.ref] = pending
+        }
+
+        timeoutScheduler(carrierSettings.smsPolicy.rpResultWaitMs) {
+            val expired = smsLock.withLock {
+                pendingOutgoingSmsByCallId.remove(callId)?.also {
+                    pendingOutgoingSmsByRef.remove(it.ref)
+                }
+            }
+
+            if (expired != null) {
+                Rlog.w(
+                    tag,
+                    "Timed out waiting for RP result for outgoing SMS " +
+                        "ref=${expired.ref} callId=${expired.callId}",
+                )
+
+                try {
+                    expired.failCb()
+                } catch (t: Throwable) {
+                    Rlog.d(tag, "Failed reporting outgoing SMS RP timeout", t)
+                }
+            }
+        }
+    }
+
+    private fun removePendingOutgoingSms(request: SipRequest, sms: SipSms): PendingOutgoingSms? {
+        val inReplyTo = request.headers["in-reply-to"]?.getOrNull(0)
+        val ref = smsRefToInt(sms.ref)
+
+        return smsLock.withLock {
+            val pending = inReplyTo?.let { pendingOutgoingSmsByCallId.remove(it) }
+                ?: pendingOutgoingSmsByRef.remove(ref)
+
+            if (pending != null) {
+                pendingOutgoingSmsByCallId.remove(pending.callId)
+                pendingOutgoingSmsByRef.remove(pending.ref)
+            }
+
+            pending
+        }
+    }
+
+    private fun completePendingOutgoingSms(
+        request: SipRequest,
+        sms: SipSms,
+        success: Boolean,
+    ): Boolean {
+        val pending = removePendingOutgoingSms(request, sms) ?: return false
+
+        Rlog.d(
+            tag,
+            "Completing outgoing SMS from RP result: " +
+                "success=$success ref=${pending.ref} callId=${pending.callId}",
+        )
+
+        try {
+            if (success) {
+                pending.successCb()
+            } else {
+                pending.failCb()
+            }
+        } catch (t: Throwable) {
+            Rlog.d(tag, "Failed reporting outgoing SMS RP result", t)
+        }
+
+        return true
+    }
+
+    private fun failPendingOutgoingSmsForSipResponse(callId: String, response: SipResponse) {
+        val pending = smsLock.withLock {
+            pendingOutgoingSmsByCallId.remove(callId)?.also {
+                pendingOutgoingSmsByRef.remove(it.ref)
+            }
+        } ?: return
+
+        Rlog.w(
+            tag,
+            "Outgoing SMS SIP transaction failed before RP result: " +
+                "status=${response.statusCode} ref=${pending.ref} callId=$callId",
+        )
+
+        try {
+            smsSipFailureListener(realmProvider(), response.statusCode)
+            pending.failCb()
+        } catch (t: Throwable) {
+            Rlog.d(tag, "Failed reporting outgoing SMS SIP failure", t)
+        }
+    }
+
+    fun clearState() {
+        val pending = smsLock.withLock {
+            smsHeadersMap.clear()
+            val all = pendingOutgoingSmsByCallId.values.toList()
+            pendingOutgoingSmsByCallId.clear()
+            pendingOutgoingSmsByRef.clear()
+            all
+        }
+        pending.forEach { try { it.failCb() } catch (t: Exception) {
+            Rlog.w(tag, "Failed reporting interrupted SMS", t)
+        } }
+    }
+
+    fun handleSms(request: SipRequest): Int {
+        val sms = try { request.body.SipSmsDecode() } catch (e: RuntimeException) { null }
+        if (sms == null) {
+            Rlog.w(tag, "Could not decode sms pdu")
+            return 500
+        }
+
+        Rlog.d(tag, "Decoded SMS type ${sms.type}, ${sms.pdu?.toString()}")
+        when (sms.type) {
+            SmsType.RP_DATA_FROM_NETWORK -> {
+                val receivedCb = onSmsReceived
+                if (receivedCb == null) {
+                    Rlog.d(tag, "No onSmsReceived callback!")
+                    return 500
+                }
+
+                val token = smsLock.withLock { smsToken++ }
+                val dest = (request.headers["from"]?.firstOrNull() ?: return 400)
+                    .getParams()
+                    .component1()
+                    .trimStart('<')
+                    .trimEnd('>')
+                val callId = request.headers["call-id"]?.firstOrNull() ?: return 400
+                val pdu = sms.pdu ?: return 400
+                val tpduOffset = 1 + (pdu[0].toInt() and 0xff)
+                if (tpduOffset >= pdu.size) return 400
+                val statusReport = (pdu[tpduOffset].toInt() and 3) == 2
+                val callback = if (statusReport) onSmsStatusReportReceived else receivedCb
+                if (callback == null) return 500
+                smsLock.withLock {
+                    smsHeadersMap[token] = smsHeaders(dest, callId, sms.ref)
+                }
+
+                try {
+                    callback(token, "3gpp", pdu)
+                } catch (t: Throwable) {
+                    Rlog.d(tag, "Failed sending SMS to framework", t)
+                    sendSmsAck(token, 0, true)
+                }
+            }
+
+            SmsType.RP_ACK_FROM_NETWORK -> {
+                // RP-ACK acknowledges submission; it is not a TP status report.
+                completePendingOutgoingSms(request, sms, success = true)
+            }
+
+            SmsType.RP_ERROR_FROM_NETWORK -> {
+                if (!completePendingOutgoingSms(request, sms, success = false)) {
+                    Rlog.d(tag, "SMS error from network without matching pending outgoing SMS")
+                }
+            }
+
+            else -> return 500
+        }
+
+        return 200
+    }
+
+
+    /*
+     * Write and flush a complete IMS SMS SIP frame to the socket writer.
+     *
+     * Keep logging the byte count and first line so carrier-specific MESSAGE
+     * failures can be correlated with the exact request/response sent.
+     */
+    private fun writeSmsSipBytesWithFlush(
+        writer: java.io.OutputStream,
+        label: String,
+        bytes: ByteArray,
+    ) {
+        val firstLine = bytes.toString(Charsets.US_ASCII).lineSequence().firstOrNull().orEmpty()
+        synchronized(writer) {
+            writer.write(bytes)
+            writer.flush()
+        }
+        Rlog.d(tag, "SIP SMS write complete label=$label bytes=${bytes.size} firstLine=$firstLine")
+    }
+
+    fun sendSms(
+        smsSmsc: String?,
+        pdu: ByteArray,
+        ref: Int,
+        successCb: (() -> Unit),
+        failCb: (() -> Unit),
+    ) {
+        val smsManager = ctxt.getSystemService(SmsManager::class.java).createForSubscriptionId(subId)
+        val smscIdentity = try {
+            val i = smsManager
+                .javaClass
+                .getMethod("getSmscIdentity")
+                .invoke(smsManager) as? Uri
+            if (i?.host.isNullOrBlank()) null else i
+        } catch (t: Throwable) {
+            null
+        }
+        Rlog.d(tag, "Got smscIdentity $smscIdentity")
+
+        val frameworkSmsc = normalizeSmscNumber(smsSmsc)
+        val identitySmsc = normalizeSmscNumber(smscIdentity?.host)
+        val managerSmsc = try {
+            val smscStr = smsManager.smscAddress
+            val parsed = normalizeSmscNumber(smscStr)
+            Rlog.d(tag, "Got smsc $smscStr, parsed $parsed")
+            parsed
+        } catch (t: Throwable) {
+            Rlog.d(tag, "smscAddress failed", t)
+            null
+        }
+
+        val realm = realmProvider()
+        val mySip = mySipProvider()
+        val rawSmsc = frameworkSmsc ?: identitySmsc ?: managerSmsc
+
+        /*
+         * SingTel IMS SMS must be sent to the operator SMSC URI in the
+         * ims.singtel.com realm. Decode framework-provided PDU SMSC addresses
+         * before building both RP-DATA and the SIP MESSAGE target.
+         */
+        val useSingTelSmsPolicy = carrierSettings.useSingTelStockPolicy(realm)
+
+        fun decodeSingTelSmscPduAddress(value: String?): String? {
+            val raw = value
+                ?.trim()
+                ?.removePrefix("<")
+                ?.removeSuffix(">")
+                ?.removePrefix("sip:")
+                ?.substringBefore("@")
+                ?.substringBefore(";")
+                ?.trim()
+                ?.trimStart('+')
+                ?: return null
+
+            val hex = raw.filter { ch -> ch.isDigit() || ch.toLowerCase() in 'a'..'f' }
+            if (hex.length < 4 || hex.length % 2 != 0) return null
+
+            val len = hex.substring(0, 2).toIntOrNull(16) ?: return null
+            if (len <= 1) return null
+
+            val bcdStart = 4
+            val bcdEnd = bcdStart + (len - 1) * 2
+            if (hex.length < bcdEnd) return null
+
+            val bcd = hex.substring(bcdStart, bcdEnd)
+            val digits = buildString {
+                var i = 0
+                while (i + 1 < bcd.length) {
+                    val lo = bcd[i]
+                    val hi = bcd[i + 1]
+                    if (hi != 'f' && hi != 'F') append(hi)
+                    if (lo != 'f' && lo != 'F') append(lo)
+                    i += 2
+                }
+            }
+
+            if (digits.isBlank()) return null
+            return when {
+                digits.startsWith("65") -> "+$digits"
+                digits.length == 8 -> "+65$digits"
+                else -> "+$digits"
+            }
+        }
+
+        fun normalizeSingTelSmscAddress(value: String?): String? {
+            decodeSingTelSmscPduAddress(value)?.let { return it }
+
+            val userPart = value
+                ?.trim()
+                ?.removePrefix("<")
+                ?.removeSuffix(">")
+                ?.removePrefix("sip:")
+                ?.substringBefore("@")
+                ?.substringBefore(";")
+                ?.trim()
+                ?: return null
+
+            if (userPart.isBlank()) return null
+            val digits = userPart.trimStart('+')
+            return when {
+                userPart.startsWith("+") -> userPart
+                digits.startsWith("65") -> "+$digits"
+                digits.length == 8 -> "+65$digits"
+                else -> "+$digits"
+            }
+        }
+
+        val smsc = if (useSingTelSmsPolicy) carrierSettings.singtelSmsc() else rawSmsc
+
+        // RP-DATA destination address. Passing an empty string makes
+        // PhoneNumberUtils.numberToCalledPartyBCD("") return null and crashes
+        // SipSmsEncodeSms(), so keep it null when we genuinely do not know it.
+        val rpSmsc = smsc?.let { if (it.startsWith("+")) it else "+$it" }
+        val data = SipSmsEncodeSms(ref.toByte(), rpSmsc, pdu)
+        Rlog.d(tag, "Sending SMS RP-DATA bytes=${data.size}")
+
+        val smscSipIdentity = smscIdentity?.toString()?.let { normalizeSipTarget(it) }
+        val requestUri = carrierSettings.smsRequestUri(realm, smsc, smscSipIdentity)
+        val dest = carrierSettings.smsToUri(realm, requestUri, smsc, smscSipIdentity)
+        if (useSingTelSmsPolicy) {
+            Rlog.d(tag, "Using SingTel IMS SMS target requestUri=$requestUri dest=$dest rawSmsc=$rawSmsc smsc=$smsc rpSmsc=$rpSmsc")
+        }
+
+        val msg = SipRequest(
+            SipMethod.MESSAGE,
+            requestUri,
+            commonHeadersProvider() + """
+                From: <$mySip>
+                To: <$dest>
+                P-Preferred-Identity: <$mySip>
+                P-Asserted-Identity: <$mySip>
+                Expires: 7200
+                Content-Type: application/vnd.3gpp.sms
+                Supported: sec-agree, path
+                Require: sec-agree
+                Proxy-Require: sec-agree
+                Allow: MESSAGE
+                Accept-Contact: *;+g.3gpp.smsip;require;explicit
+                Request-Disposition: no-fork
+            """.toSipHeadersMap(),
+            data,
+        )
+
+        val callId = msg.headers["call-id"]!![0]
+        rememberPendingOutgoingSms(callId, ref, successCb, failCb)
+
+        responseCallbackSetter(callId) { resp: SipResponse ->
+            when {
+                resp.statusCode == 200 || resp.statusCode == 202 -> {
+                    Rlog.d(
+                        tag,
+                        "Outgoing SMS SIP MESSAGE accepted; waiting for RP result " +
+                            "ref=${ref and 0xff} callId=$callId status=${resp.statusCode}",
+                    )
+                    true
+                }
+
+                resp.statusCode < 200 -> false
+
+                else -> {
+                    failPendingOutgoingSmsForSipResponse(callId, resp)
+                    true
+                }
+            }
+        }
+
+        Rlog.d(tag, "Sending SMS SIP MESSAGE")
+        val writer = writerProvider()
+        writeSmsSipBytesWithFlush(writer, "SipSmsHandler msg ref=$ref requestUri=$requestUri dest=$dest", msg.toByteArray())
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun sendSmsAck(token: Int, ref: Int, error: Boolean) {
+        Rlog.d(tag, "sending sms ack")
+        // Android's messageRef is TP-MR, independent of the RP reference.
+        val headers = smsLock.withLock { smsHeadersMap.remove(token) } ?: return
+        val body = if (error) SipSmsEncodeError(headers.rpRef) else SipSmsEncodeAck(headers.rpRef)
+
+        val msg = SipRequest(
+            SipMethod.MESSAGE,
+            headers.dest,
+            commonHeadersProvider() + """
+                In-Reply-To: ${headers.callId}
+                Content-Type: application/vnd.3gpp.sms
+                Proxy-Require: sec-agree
+                Require: sec-agree
+                Allow: MESSAGE
+                Supported: path, gruu, sec-agree
+                Request-Disposition: no-fork
+                Accept-Contact: *;+g.3gpp.smsip
+            """.toSipHeadersMap(),
+            body,
+        )
+
+        // Ignore response.
+        responseCallbackSetter(msg.headers["call-id"]!![0]) { true }
+
+        Rlog.d(tag, "Sending SMS SIP MESSAGE")
+        val writer = writerProvider()
+        writeSmsSipBytesWithFlush(writer, "SipSmsHandler ack ref=$ref", msg.toByteArray())
+    }
+
+    private fun normalizeSipTarget(raw: String): String =
+        if (raw.startsWith("sip:", ignoreCase = true) || raw.startsWith("tel:", ignoreCase = true)) {
+            raw
+        } else {
+            "sip:$raw"
+        }
+}

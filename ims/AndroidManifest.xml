@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="me.phh.ims"
+    coreApp="true"
+    android:persistent="true"
+    android:sharedUserId="android.uid.system">
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.MODIFY_PHONE_STATE" />
+    <uses-permission android:name="android.permission.CONNECTIVITY_INTERNAL" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <application
+        android:allowBackup="false"
+        android:label="@string/app_name">
+        <service
+            android:name="me.phh.ims.PhhImsService"
+            android:exported="true"
+            android:directBootAware="true"
+            android:persistent="true"
+            android:permission="android.permission.BIND_IMS_SERVICE">
+            <!-- directBootAware probably not needed see
+            https://developer.android.com/training/articles/direct-boot.html -->
+            <!-- persistent: requires app to be built as a system app -->
+            <!-- permission also requires app to be built as system app:
+                 so any ImsService implementations defined here are required to be System
+                 applications and must reside in the /system/priv-app/ or /product/priv-app/
+            folder to grant the appropriate permissions... -->
+        <meta-data android:name="android.telephony.ims.MMTEL_FEATURE" android:value="true"/>
+        <intent-filter>
+            <action android:name="android.telephony.ims.ImsService" />
+        </intent-filter>
+      </service>
+    </application>
+    <protected-broadcast android:name="me.phh.ims.ALARM_PERIODIC_REGISTER" />
+
+</manifest>

@@ -1,0 +1,3 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.samsung.a3lte.ims.telephony">
+    <overlay android:targetPackage="com.android.phone" android:isStatic="true" android:priority="100"/>
+</manifest>

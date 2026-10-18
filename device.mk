@@ -122,3 +122,6 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
 
 # Call the proprietary setup
 $(call inherit-product, vendor/samsung/a3lte/a3lte-vendor.mk)
+
+# IMS / VoLTE
+$(call inherit-product, device/samsung/a3lte/ims/ims.mk)
