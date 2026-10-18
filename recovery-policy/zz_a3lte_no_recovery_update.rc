@@ -1,0 +1,7 @@
+# Defense against stale install-recovery artifacts from an older build.
+# Vendor init files are parsed alphabetically; override vendor_flash_recovery.rc.
+service vendor_flash_recovery /system/bin/false
+    override
+    class main
+    disabled
+    oneshot

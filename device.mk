@@ -128,3 +128,9 @@ $(call inherit-product, vendor/samsung/a3lte/a3lte-vendor.mk)
 
 # IMS / VoLTE
 $(call inherit-product, device/samsung/a3lte/ims/ims.mk)
+
+# Never replace the user's separately installed TWRP.
+PRODUCT_BUILD_RECOVERY_IMAGE := false
+PRODUCT_PACKAGES += a3lte_no_recovery_update
+PRODUCT_VENDOR_PROPERTIES += persist.vendor.recovery_update=false
+PRODUCT_HOST_PACKAGES += a3_ota_from_target_files

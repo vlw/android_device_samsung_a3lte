@@ -55,7 +55,17 @@ TARGET_SYSTEM_PROP += $(DEVICE_PATH)/system.prop
 
 TARGET_RELEASETOOLS_EXTENSIONS := device/samsung/a3lte/releasetools
 
-# Recovery
+# Recovery is owned by the separately installed TWRP, for every build variant.
+# Explicit PRODUCT_BUILD_RECOVERY_IMAGE=true overrides TARGET_NO_RECOVERY in AOSP.
+override TARGET_NO_RECOVERY := true
+ifeq ($(PRODUCT_BUILD_RECOVERY_IMAGE),true)
+$(error a3lte must not build or package a recovery image)
+endif
+ifneq ($(filter true,$(BOARD_USES_RECOVERY_AS_BOOT) $(BOARD_MOVE_RECOVERY_RESOURCES_TO_VENDOR_BOOT) $(BOARD_INCLUDE_RECOVERY_RAMDISK_IN_VENDOR_BOOT)),)
+$(error a3lte must not embed recovery in boot or vendor_boot)
+endif
+
+# Keep the partition map for OTA tools/TWRP; do not build a recovery image.
 TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/rootdir/etc/fstab.qcom
 
 # SELinux

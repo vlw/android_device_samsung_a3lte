@@ -1,0 +1,10 @@
+{
+  "backuptool.sh": {
+    "source": "vendor/lineage/prebuilt/common/bin/backuptool.sh",
+    "sha256": "49ba4d6de89074fba1527689922080f113e1585e12068216b5a7251e9a5f44d3"
+  },
+  "backuptool.functions": {
+    "source": "vendor/lineage/prebuilt/common/bin/backuptool.functions",
+    "sha256": "6da4f6a3173786019dce0ecdf658c1806539787ba35271200da647de0b49a879"
+  }
+}

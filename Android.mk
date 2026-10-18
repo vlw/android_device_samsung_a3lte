@@ -17,6 +17,13 @@ LOCAL_PATH := $(call my-dir)
 
 ifeq ($(TARGET_DEVICE), a3lte)
 
+# AOSP non-A/B packaging requires and bundles recovery. Use the device-owned
+# generator that preserves TWRP and rejects recovery-bearing inputs instead.
+# core/Makefile otherwise disables non-A/B OTA entirely when recovery is off.
+# This is metadata only; the runtime copy supplies the host generator's map.
+recovery_fstab := $(TARGET_RECOVERY_FSTAB)
+OTA_FROM_TARGET_FILES := $(HOST_OUT_EXECUTABLES)/a3_ota_from_target_files$(HOST_EXECUTABLE_SUFFIX)
+
 include $(call all-subdir-makefiles,$(LOCAL_PATH))
 
 endif
