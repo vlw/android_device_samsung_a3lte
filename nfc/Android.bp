@@ -19,3 +19,12 @@ cc_binary {
         "android.hardware.nfc@1.0",
     ],
 }
+
+// Optional regression test; deliberately not in PRODUCT_PACKAGES.
+cc_binary {
+    name: "a3_nfc_lifecycle_test",
+    vendor: true,
+    srcs: ["Nfc.cpp", "tests/lifecycle_test.cpp"],
+    shared_libs: ["libhardware", "libhidlbase", "liblog", "libutils", "android.hardware.nfc@1.0"],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+}

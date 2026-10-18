@@ -62,6 +62,9 @@ sp<INfcClientCallback> Nfc::mCallback = nullptr;
 std::mutex Nfc::mLock;
 bool Nfc::mOpening = false;
 bool Nfc::mOpenReported = false;
+bool Nfc::mDeviceOpen = false;
+bool Nfc::mClosing = false;
+uint64_t Nfc::mGeneration = 0;
 std::vector<uint8_t> Nfc::mResetRsp;
 
 Nfc::Nfc(nfc_nci_device_t* device) : mDevice(device) {}
@@ -71,27 +74,45 @@ Return<NfcStatus> Nfc::open(const sp<INfcClientCallback>& clientCallback) {
     if (mDevice == nullptr || clientCallback == nullptr) {
         return NfcStatus::FAILED;
     }
+    uint64_t generation;
     {
         std::lock_guard<std::mutex> lock(mLock);
+        // The legacy module has one global transport. Calling open twice resets
+        // its state machine, even if it is in the middle of a firmware update.
+        if (mDeviceOpen || mClosing) {
+            ALOGW("Rejecting overlapping NFC open");
+            return NfcStatus::FAILED;
+        }
+        mDeviceOpen = true;
+        generation = ++mGeneration;
         mCallback = clientCallback;
         mOpening = true;
         mOpenReported = false;
         mResetRsp.clear();
     }
-    clientCallback->linkToDeath(this, 0 /*cookie*/);
+    clientCallback->linkToDeath(this, generation);
     int ret = mDevice->open(mDevice, eventCallback, dataCallback);
+    if (ret != 0) {
+        clientCallback->unlinkToDeath(this);
+        std::lock_guard<std::mutex> lock(mLock);
+        mDeviceOpen = false;
+        mOpening = false;
+        mCallback = nullptr;
+        mResetRsp.clear();
+    }
     return ret == 0 ? NfcStatus::OK : NfcStatus::FAILED;
 }
 
 Return<uint32_t> Nfc::write(const hidl_vec<uint8_t>& data) {
-    if (mDevice == nullptr) {
-        return -1;
+    if (mDevice == nullptr || data.size() == 0) {
+        return 0;
     }
 
     sp<INfcClientCallback> callback;
     std::vector<uint8_t> rsp;
     {
         std::lock_guard<std::mutex> lock(mLock);
+        if (!mDeviceOpen || mClosing) return 0;
         if (!mResetRsp.empty()) {
             if (isCoreReset(data.data(), data.size(), kNciMtCmd)) {
                 callback = mCallback;
@@ -128,9 +149,17 @@ Return<NfcStatus> Nfc::prediscover() {
 }
 
 Return<NfcStatus> Nfc::close() {
+    return closeInternal(0);
+}
+
+Return<NfcStatus> Nfc::closeInternal(uint64_t generation) {
     sp<INfcClientCallback> callback;
     {
         std::lock_guard<std::mutex> lock(mLock);
+        if (!mDeviceOpen || mClosing || (generation != 0 && generation != mGeneration)) {
+            return NfcStatus::FAILED;
+        }
+        mClosing = true;
         callback = mCallback;
         mOpening = false;
         mResetRsp.clear();
@@ -139,7 +168,15 @@ Return<NfcStatus> Nfc::close() {
         return NfcStatus::FAILED;
     }
     callback->unlinkToDeath(this);
-    return mDevice->close(mDevice) ? NfcStatus::FAILED : NfcStatus::OK;
+    int ret = mDevice->close(mDevice);
+    {
+        std::lock_guard<std::mutex> lock(mLock);
+        mCallback = nullptr;
+        mDeviceOpen = false;
+        mClosing = false;
+        mOpenReported = false;
+    }
+    return ret ? NfcStatus::FAILED : NfcStatus::OK;
 }
 
 Return<NfcStatus> Nfc::controlGranted() {
@@ -212,8 +249,10 @@ void Nfc::dataCallback(uint16_t data_len, uint8_t* p_data) {
     }
 }
 
-void Nfc::serviceDied(uint64_t /*cookie*/, const wp<hidl::base::V1_0::IBase>& /*who*/) {
-    close();
+void Nfc::serviceDied(uint64_t cookie, const wp<hidl::base::V1_0::IBase>& /*who*/) {
+    // Test the generation and claim the close in one critical section, so a
+    // stale owner cannot race with reopening by a newer NFC process.
+    closeInternal(cookie);
 }
 
 Nfc* Nfc::create() {

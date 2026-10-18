@@ -54,10 +54,14 @@ struct Nfc : public INfc, public hidl_death_recipient {
     void serviceDied(uint64_t cookie, const wp<hidl::base::V1_0::IBase>& who) override;
 
   private:
+    Return<NfcStatus> closeInternal(uint64_t generation);
     static sp<INfcClientCallback> mCallback;
     static std::mutex mLock;
     static bool mOpening;
     static bool mOpenReported;
+    static bool mDeviceOpen;
+    static bool mClosing;
+    static uint64_t mGeneration;
     static std::vector<uint8_t> mResetRsp;
     const nfc_nci_device_t* mDevice;
 };
