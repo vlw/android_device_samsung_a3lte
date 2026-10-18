@@ -57,6 +57,9 @@ PRODUCT_COPY_FILES += \
 
 PRODUCT_PACKAGES += audio_amplifier.msm8916 A3TfaVolume
 
+# Correct normalized AIDL vibration amplitudes for the ss_vibrator driver.
+PRODUCT_PACKAGES += android.hardware.vibrator-service.a3lte
+
 # Shipping API level
 $(call inherit-product, $(SRC_TARGET_DIR)/product/product_launched_with_k.mk)
 

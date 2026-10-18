@@ -124,6 +124,10 @@
     <!-- Default color for notification LED is blue. -->
     <color name="config_defaultNotificationColor">#ff00ffff</color>
 
+    <!-- Default-amplitude effects use half scale; user intensity remains MEDIUM.
+         Explicit app amplitudes and STRONG effects can still reach full scale. -->
+    <integer name="config_defaultVibrationAmplitude">128</integer>
+
     <!-- Vibrator pattern for feedback about a long screen/key press -->
     <integer-array name="config_longPressVibePattern">
         <item>0</item>

@@ -13,3 +13,5 @@
 # the existing mm-qcamerad vendor_file execmod rule applies on non-Treble builds.
 /system/vendor/lib/libmmcamera_faceproc\.so           u:object_r:vendor_file:s0
 /vendor/lib/libmmcamera_faceproc\.so                  u:object_r:vendor_file:s0
+
+/(vendor|system/vendor)/bin/hw/android\.hardware\.vibrator-service\.a3lte    u:object_r:hal_vibrator_default_exec:s0
