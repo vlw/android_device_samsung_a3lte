@@ -28,7 +28,13 @@ $(call inherit-product, device/samsung/msm8916-common/msm8916.mk)
 
 # Soong
 PRODUCT_SOONG_NAMESPACES += \
-    device/samsung/a3lte
+    device/samsung/a3lte \
+    hardware/google/pixel \
+    hardware/google/interfaces
+
+# Export Power HAL dependency namespaces to Make so its shared libraries are
+# installed as well as linked. Missing these blocks PowerManager at boot.
+PRODUCT_PACKAGES += libperfmgr pixel-power-ext-V1-ndk_platform
 
 # Overlay
 DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
