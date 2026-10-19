@@ -99,6 +99,9 @@ void vendor_load_properties(void)
 		return;
 	}
 
+	/* The a3 kernel provides the Android network BPF backport. */
+	property_override("ro.kernel.ebpf.supported", "true");
+
 	/* set the properties */
 	set_target_properties(device, model, name);
 }
