@@ -15,12 +15,14 @@ class SipMediaCodec private constructor(
     companion object {
         fun android(codec: MediaCodec) = SipMediaCodec(codec, null, false)
         fun evs(profile: NegotiatedAudioCodec, encode: Boolean) = SipMediaCodec(null, StockEvsCodec(profile.sampleRate), encode, profile)
+        private const val LATE_PACKET_QUEUE_LIMIT = 3 // 60 ms
     }
     private val input = ByteBuffer.allocate(65536)
     private val output = ArrayDeque<ByteArray>()
     private var partialPcm = ByteArray(0)
     private val frameBytes get() = (profile?.sampleRate ?: 32000)/50*2
-    private var lastTimestamp: Int? = null
+    private var lastTimestamp: Int? = null // playout position, advanced by concealment
+    private var lastReceivedTimestamp: Int? = null
     private var lastToc: Int? = null
     @Synchronized fun evsConcealment(): ByteArray? {
         if (evs==null || encode) return null
@@ -36,13 +38,21 @@ class SipMediaCodec private constructor(
         pcmQueue: java.util.concurrent.ArrayBlockingQueue<ByteArray>) {
         val session=profile?.evs ?: return
         val received=EvsRtpPayload.parse(packet,length,session) ?: return
-        val previous=lastTimestamp
-        if(previous!=null && received.timestamp-previous<=0) return // duplicate/reordered
+        val end=received.timestamp+320*(received.frames.size-1)
+        val receivedBefore=lastReceivedTimestamp
+        if(receivedBefore!=null && received.timestamp-receivedBefore<=0) return // duplicate/reordered
+        lastReceivedTimestamp=end
         received.cmr?.let { session.receiveCmr(it) }
+        val previous=lastTimestamp
+        // Playout concealed this slot while the packet was slightly late. Do
+        // not drop it: that made every following packet "late" too and muted
+        // the downlink for seconds. Play it unless enough audio is queued.
+        val late=previous!=null && received.timestamp-previous<=0
+        if(late && pcmQueue.size>=LATE_PACKET_QUEUE_LIMIT) return
         fun offer(pcm: ByteArray) {
             if(!pcmQueue.offer(pcm)) { pcmQueue.poll(); pcmQueue.offer(pcm) }
         }
-        if(previous!=null && lastToc?.let { EvsFrames.speech(it) }==true) {
+        if(previous!=null && !late && lastToc?.let { EvsFrames.speech(it) }==true) {
             val lost=((received.timestamp-previous)/320-1).coerceIn(0,12)
             repeat(lost) { evsConcealment()?.let { offer(it) } }
         }
@@ -50,7 +60,7 @@ class SipMediaCodec private constructor(
             offer(evs!!.decode(frame))
             lastToc=frame[0].toInt() and 255
         }
-        lastTimestamp=received.timestamp+320*(received.frames.size-1)
+        if(previous==null || end-previous>0) lastTimestamp=end
     }
     fun dequeueInputBuffer(timeoutUs: Long): Int = androidCodec?.dequeueInputBuffer(timeoutUs) ?: 0
     fun getInputBuffer(index: Int): ByteBuffer? = if (androidCodec != null) androidCodec.getInputBuffer(index) else input
