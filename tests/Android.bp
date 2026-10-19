@@ -1,0 +1,6 @@
+cc_binary {
+    name: "a3lte_bpf_probe",
+    shared_libs: ["libdl"],
+    srcs: ["bpf_probe.c"],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+}
