@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Host-only regression checks; never connects to ADB or a block device."""
 import io
+import pathlib
+import tempfile
 import unittest
 import zipfile
 from unittest.mock import patch
@@ -8,6 +10,8 @@ import a3_ota_from_target_files
 import non_ab_ota
 import ota_no_recovery
 import common
+import ota_utils
+import ota_metadata_pb2
 from recovery_policy import check_target, check_ota
 
 
@@ -21,6 +25,26 @@ def archive(files):
 
 
 class PolicyTest(unittest.TestCase):
+    def test_metadata_sidecars_match_zip(self):
+        metadata = ota_metadata_pb2.OtaMetadata()
+        metadata.type = ota_metadata_pb2.OtaMetadata.BLOCK
+        metadata.precondition.device.append("a3lte")
+        with tempfile.TemporaryDirectory() as directory:
+            output = pathlib.Path(directory) / "metadata"
+            ota_utils.WriteMetadata(metadata, str(output))
+            restored = ota_metadata_pb2.OtaMetadata()
+            restored.ParseFromString(output.with_suffix(".pb").read_bytes())
+            self.assertEqual(restored, metadata)
+            data = io.BytesIO()
+            with zipfile.ZipFile(data, "w") as package:
+                ota_utils.WriteMetadata(metadata, package)
+            data.seek(0)
+            with zipfile.ZipFile(data) as package:
+                self.assertEqual(package.read(ota_utils.METADATA_PROTO_NAME),
+                                 output.with_suffix(".pb").read_bytes())
+                self.assertEqual(package.read(ota_utils.METADATA_NAME),
+                                 output.read_bytes())
+
     def test_reject_stale_payloads(self):
         for name in ["RECOVERY/RAMDISK/init", "IMAGES/recovery.img",
                      "SYSTEM/vendor/etc/recovery.img", "SYSTEM/vendor/bin/install-recovery.sh",

@@ -10,6 +10,7 @@ import os
 import zipfile
 import common
 import non_ab_ota
+import ota_utils
 from recovery_policy import check_target, check_ota
 
 
@@ -47,6 +48,16 @@ def install():
         for fragment in fragments:
             source = _drop_once(source, fragment)
         prepared.append(compile(source, "<a3lte no-recovery: " + name + ">", "exec"))
+    # This branch writes serialized protobuf bytes to a text-mode sidecar.
+    # Fix only the device's host tool; preserve upstream ZIP and legacy output.
+    source = inspect.getsource(ota_utils.WriteMetadata)
+    text_open = "with open('{}.pb'.format(output), 'w') as f:"
+    if source.count(text_open) != 1:
+        raise common.ExternalError("a3lte: review OTA metadata binary-write adapter")
+    source = source.replace(text_open, text_open.replace("'w'", "'wb'"), 1)
+    metadata_code = compile(source, "<a3lte binary OTA metadata>", "exec")
+    exec(metadata_code, ota_utils.__dict__)
+
     for code in prepared:
         exec(code, non_ab_ota.__dict__)
 

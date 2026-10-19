@@ -55,6 +55,12 @@ TARGET_SYSTEM_PROP += $(DEVICE_PATH)/system.prop
 
 TARGET_RELEASETOOLS_EXTENSIONS := device/samsung/a3lte/releasetools
 
+# Keep the Samsung custom boot builder inherited from msm8916-common, but
+# package only its finished boot image. BOARD_CUSTOM_BOOTIMG also copies an
+# unconditional recovery.img in this branch, which is absent on this device.
+BOARD_CUSTOM_BOOTIMG :=
+BOARD_COPY_BOOT_IMAGE_TO_TARGET_FILES := true
+
 # Recovery is owned by the separately installed TWRP, for every build variant.
 # Explicit PRODUCT_BUILD_RECOVERY_IMAGE=true overrides TARGET_NO_RECOVERY in AOSP.
 override TARGET_NO_RECOVERY := true

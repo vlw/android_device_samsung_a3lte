@@ -26,6 +26,10 @@ This does not cover user-installed root modules or arbitrary external flashers.
 * `TARGET_NO_RECOVERY=true` and `PRODUCT_BUILD_RECOVERY_IMAGE=false` disable the
   image in all variants. Board validation rejects explicitly enabling the image
   or embedding recovery resources in boot/vendor_boot.
+* `BOARD_CUSTOM_BOOTIMG_MK` retains the Samsung legacy boot builder, while
+  `BOARD_CUSTOM_BOOTIMG` is cleared and `BOARD_COPY_BOOT_IMAGE_TO_TARGET_FILES`
+  copies the completed boot image into `IMAGES/boot.img`. This avoids the branch's
+  unconditional custom recovery copy without rebuilding or changing the boot header.
 * The device-owned ETC module overrides inherited recovery modules and vendor
   `applypatch`, removing the automatic flash service from the normal product's
   dependency closure. OTA's updater has its own patch implementation.
@@ -55,6 +59,11 @@ stops for review. Two-step OTA is rejected before generation and by both writers
 so its remaining upstream branches cannot run. Target inputs and the output ZIP
 are validated before finalization/signing; no fake recovery image is substituted.
 
+The device adapter also corrects this branch's Python 3 protobuf sidecar write:
+`ota_utils.WriteMetadata` opens `.pb` in binary mode in memory. ZIP metadata and
+legacy text output retain their upstream implementation. This exact-fragment
+adaptation stops if the upstream function changes, without editing `build/make`.
+
 The runtime `SYSTEM/vendor/etc/fstab.qcom` supplies the partition map without a
 recovery ramdisk; `/recovery` is removed from the host generator's map. For full
 OTA addon.d backup/restore, host prebuilt rules read backuptool directly from
@@ -74,7 +83,8 @@ out/host/linux-x86/bin/a3_recovery_policy_test
 
 Host tests cover forbidden payloads and stale block maps, safe/unsafe scripts,
 two-step rejection before file access (including direct writers), rejection of
-changed upstream fragments, and the runtime fstab without /recovery.
+changed upstream fragments, the runtime fstab without /recovery, and protobuf/text
+metadata sidecars matching their ZIP entries.
 Full and incremental ZIPs were additionally generated from synthetic ext4
 fixtures with addon.d backup enabled and the real a3lte DT adaptation extension.
 Their scripts and block data, plus the full ZIP's backup tools, were checked; neither ZIP contains a
@@ -89,3 +99,9 @@ Diagnostics are under `out/recovery-diagnostics/2026-10-19/`. Phone inspection w
 read-only: no reboot, service restart, partition flash or file removal was done.
 Existing installer files on an already installed older ROM remain until it is
 updated; these source changes apply to newly built ROMs.
+
+The device-only packaging changes were verified with `lunch lineage_a3lte-eng`
+and `mka -j16 bacon` on 2026-10-19: all eight host tests passed, the full ROM ZIP
+passed CRC/SHA256 checks, and target-files/OTA preserved the built legacy boot
+image without a recovery payload. `build/make` remained clean. No phone was
+flashed or rebooted during this verification.
