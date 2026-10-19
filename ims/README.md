@@ -30,7 +30,11 @@ install the Android 6 Java framework or replace modem firmware.
   IMS UT are not enabled by this integration.
 - `liba3ims_radio` forwards the existing vendor RIL unchanged and delivers AP
   registration/capability updates through its exported IIL parsers and IMS
-  worker. The bridge also requests NAS PS-preferred voice with CS fallback.
+  worker. The bridge also requests NAS PS-preferred voice with CS fallback and
+  separately reports voice/SMS registration through `SetImsRegStateChanged`
+  (`QMI_NAS_UPDATE_IMS_STATUS`, 0x72). Samsung's default `IMS_REGI` IPC command
+  alone did not update NAS sufficiently for mobile-terminated VoLTE on BOEC.
+  Failed NAS submissions are retried instead of being cached as delivered.
   A UID-checked local socket accepts only the system IMS service's small state
   message; it never accepts arbitrary OEM or modem commands. Unknown vendor
   ABIs disable the bridge without replacing ordinary RIL operations.
@@ -41,6 +45,9 @@ install the Android 6 Java framework or replace modem firmware.
 - For A1 BY the protected UDP flow sends both requests and responses from UE
   port-c to P-CSCF port-s, as required by TS 24.229 section 5.1.1.2.2. It must
   not reverse the incoming UDP flow. TCP replies retain their accepted socket.
+- Initial incoming dialog setup reserves its slot before starting its worker.
+  UDP retransmissions during setup get 100 Trying without resetting call state
+  or notifying Android twice. Completion only releases its own reservation.
 
 ## Device verification
 
@@ -52,19 +59,24 @@ radio cycle. Turning the Android VoLTE setting off removed LTE voice
 availability; restoring the original setting restored it.
 
 On 2026-10-18 an explicitly authorized outgoing call connected over IMS while
-remaining in LTE, negotiating EVS-SWB with RTP in both directions. A later
-outgoing also remained in LTE through ringing. This does not establish perceived
-audio quality or all operator codec modes. Incoming calls still fell back to CS
-in the subsequent tests; there was no SIP INVITE at the application. Replacing
-the RIL with the complete Android 6 dependency set did not resolve this and is
-not part of the product. After correcting protected UDP response routing,
-registration NOTIFY retransmissions stopped. Incoming validation continues;
-working outgoing IMS is not evidence of working incoming VoLTE. A full P-CSCF
-capture subsequently saw the outgoing signaling/media but no traffic at all
-during an incoming CS call (no capture drops). The phone retains BOEC modem
-firmware; the supplied Android 6 archive contains CQI1. A modem replacement was
-declined and has not been performed. This version difference is an untested
-hypothesis, not an established cause. Actual SMS delivery remains unverified.
+remaining in LTE, negotiating EVS-SWB with RTP in both directions.
+
+On 2026-10-19, reporting registration through NAS as well as Samsung IPC made
+incoming SIP INVITEs arrive on the unchanged A300FUXXU1BOEC modem. NAS acknowledged
+both unregistered and registered updates with Result(0), Error(0). Incoming
+ringing stayed in LTE and selected EVS-SWB. An incoming call was then answered
+for 15 seconds: final 200 OK/ACK completed, the phone remained in LTE, and media
+cleanup reported 154 uplink RTP packets and 357 received packets. Android received
+one incoming-call notification despite an INVITE retransmission. Local hangup
+completed with BYE/200 OK. Boot registration and NAS reporting also recovered
+after an ordinary reboot. No modem replacement is required by this change.
+Actual SMS delivery and perceived audio quality remain unverified.
+An outgoing regression on the same installed version also connected in LTE;
+media cleanup reported 370 sent and 331 received RTP packets.
+
+`IncomingInviteSetupGateTest.java` is a host regression for the observed duplicate
+INVITE race: 32 concurrent copies must admit one setup, competing calls are busy,
+failed setup can retry, and stale completion cannot release a newer reservation.
 
 Device diagnostics are explicit tools and are not included in production
 packages: tests/LegacyPcscfTest.java checks synthetic address/interface cases;
@@ -121,5 +133,5 @@ NB/WB/SWB/FB bandwidths, all nine AMR-WB IO modes, DTX/SID, CMR and Compact /
 Header-Full RTP. Per-session constraints follow SDP negotiation and renegotiation;
 AMR-WB/AMR fallbacks retain Android MediaCodec and honor mode-set. See EVS.md
 for the verified mode matrix, protocol behavior, build/provenance and limits.
-The live outgoing result above covers EVS-SWB only; the broader mode matrix is
+The live incoming/outgoing results above cover EVS-SWB only; the broader mode matrix is
 synthetic validation, not evidence that every mode is accepted by the operator.
