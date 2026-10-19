@@ -3481,7 +3481,7 @@ fun onWfcDisabled(reason: String) {
         }
     }
 
-    var currentCall: Call? = null
+    @Volatile var currentCall: Call? = null
     private var heldForegroundCall: Call? = null
     private var pendingSwapHeldActiveCall: Call? = null
     private var pendingOutgoingInvite: PendingOutgoingInvite? = null
@@ -7038,8 +7038,7 @@ fun onWfcDisabled(reason: String) {
         val rtpRemotePort = incomingOffer.rtpRemotePort
         val owner = incomingOffer.owner
 
-        // Need to sleep a bit so that our 100 Trying is sent first. Kinda weird.
-        Thread.sleep(500)
+        // The initial 100 Trying is written synchronously before this worker starts.
         val rtpSocket = createIncomingInviteRtpSocket(
             rtpRemoteAddr = rtpRemoteAddr,
             rtpRemotePort = rtpRemotePort,
@@ -7132,14 +7131,19 @@ fun onWfcDisabled(reason: String) {
         incomingCallId: String,
         incomingResponseWriter: OutputStream,
         incomingOffer: IncomingInviteOffer,
+        lease: IncomingInviteSetupGate.Lease,
     ) {
         thread {
-            runIncomingInviteDialogSetup(
-                request = request,
-                incomingCallId = incomingCallId,
-                incomingResponseWriter = incomingResponseWriter,
-                incomingOffer = incomingOffer,
-            )
+            try {
+                runIncomingInviteDialogSetup(
+                    request = request,
+                    incomingCallId = incomingCallId,
+                    incomingResponseWriter = incomingResponseWriter,
+                    incomingOffer = incomingOffer,
+                )
+            } finally {
+                incomingInviteSetups.finish(lease)
+            }
         }
     }
 
@@ -7153,6 +7157,8 @@ fun onWfcDisabled(reason: String) {
             logDebug = { Rlog.d(TAG, it) },
         )
 
+
+    private val incomingInviteSetups = IncomingInviteSetupGate()
 
     fun handleCall(request: SipRequest): Int {
         val incomingCallId = request.headers["call-id"]!![0]
@@ -7194,27 +7200,40 @@ fun onWfcDisabled(reason: String) {
             ?.equals("application/sdp", ignoreCase = true) == true
         if (!isSdpInvite) return 404
 
-        resetIncomingCallStateForNewInvite()
-
-        val incomingOffer = parseIncomingInviteOffer(
-            request = request,
-            incomingCallId = incomingCallId,
-        ) ?: return 488
-        sendExplicitTryingForIncomingInvite(
-            request = request,
-            incomingResponseWriter = incomingResponseWriter,
-        )
-
-        startIncomingInviteDialogSetup(
-            request = request,
-            incomingCallId = incomingCallId,
-            incomingResponseWriter = incomingResponseWriter,
-            incomingOffer = incomingOffer,
-        )
-
-        // Do not let parseMessage auto-generate a 100 Trying with a different To-tag.
-        // The first response for this test path is our explicit 180 Ringing from the call thread.
-        return 0
+        val admission = incomingInviteSetups.begin(incomingCallId)
+        when (admission.outcome) {
+            IncomingInviteSetupGate.Outcome.DUPLICATE -> {
+                Rlog.d(TAG, "Repeated INVITE while initial dialog setup is pending")
+                sendExplicitTryingForIncomingInvite(request, incomingResponseWriter)
+                return 0
+            }
+            IncomingInviteSetupGate.Outcome.BUSY -> return 486
+            else -> Unit
+        }
+        val lease = admission.lease!!
+        var workerStarted = false
+        try {
+            // A previous worker may have published a Call after the first lookup,
+            // then released its reservation before begin(). Reclassify that dialog
+            // instead of resetting it and notifying Android a second time.
+            val publishedCall = currentCall
+            if (publishedCall != null) {
+                incomingInviteSetups.finish(lease)
+                // A malformed same-ID request must not recursively reset an
+                // unchanged outgoing dialog that the classifier left alone.
+                if (publishedCall === activeCall) return 486
+                return handleCall(request)
+            }
+            resetIncomingCallStateForNewInvite()
+            val incomingOffer = parseIncomingInviteOffer(request, incomingCallId) ?: return 488
+            sendExplicitTryingForIncomingInvite(request, incomingResponseWriter)
+            startIncomingInviteDialogSetup(request, incomingCallId, incomingResponseWriter,
+                incomingOffer, lease)
+            workerStarted = true
+            return 0
+        } finally {
+            if (!workerStarted) incomingInviteSetups.finish(lease)
+        }
     }
 
     fun handleSms(request: SipRequest): Int = smsHandler.handleSms(request)
