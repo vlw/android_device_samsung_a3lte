@@ -835,6 +835,9 @@ class PhhMmTelFeature(
         val remoteNoMediaRelease = map["remoteNoMediaRelease"] == "true"
 
         return when {
+            map["imsTransportLost"] == "true" ->
+                ImsReasonInfo(ImsReasonInfo.CODE_LOCAL_IMS_SERVICE_DOWN, 0, "IMS transport lost")
+
             localReject -> ImsReasonInfo(ImsReasonInfo.CODE_USER_DECLINE, 0, statusMessage)
 
             remoteNoMediaRelease -> {

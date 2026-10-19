@@ -873,6 +873,18 @@ fun setRequestCallback(method: SipMethod, cb: (SipRequest) -> Int) {
     }
 
     private fun clearCallAndCallbackStateForReconnect() {
+        // The dialogs die with the IMS transport (e.g. the IMS PDN is released
+        // when the network moves the UE to 3G). Tell the framework, otherwise
+        // Telecom keeps showing a call that no longer exists.
+        val lostCallIds = listOfNotNull(
+            currentCall?.callHeaders?.get("call-id")?.getOrNull(0)?.toString(),
+            heldForegroundCall?.callHeaders?.get("call-id")?.getOrNull(0)?.toString(),
+            pendingOutgoingInvite?.callId,
+        ).distinct()
+        for (callId in lostCallIds) {
+            Rlog.w(TAG, "Terminating call lost with the IMS transport: callId=$callId")
+            onCancelledCall?.invoke(Object(), "", mapOf("call-id" to callId, "imsTransportLost" to "true"))
+        }
         stopCallRuntime("IMS reconnect")
         incomingFinalResponseSent.set(false)
         incomingAcceptedAwaitingAck.set(false)
