@@ -1419,6 +1419,7 @@ fun onWfcDisabled(reason: String) {
     }
 
     private fun hasActiveOrPendingCallForImsReconnectDeferral(): Boolean {
+        if (srvccInProgress) return true
         val hasDialogState = currentCall != null || pendingOutgoingInvite != null
         if (hasDialogState) {
             return true
@@ -2187,7 +2188,26 @@ fun onWfcDisabled(reason: String) {
     }
 
 
+    private var srvccNetworkLossGeneration = 0
     private fun handleImsNetworkLost(
+        callback: ConnectivityManager.NetworkCallback,
+        lostNetwork: Network,
+    ) {
+        if (this::network.isInitialized && network == lostNetwork &&
+            (currentCall != null || pendingOutgoingInvite != null || srvccInProgress)) {
+            val generation = ++srvccNetworkLossGeneration
+            Rlog.i(TAG, "Deferring IMS PDN-loss cleanup for a possible SRVCC outcome")
+            myHandler.postDelayed({
+                if (!shutdownRequested && srvccNetworkLossGeneration == generation && network == lostNetwork) {
+                    finishImsNetworkLost(callback, lostNetwork)
+                }
+            }, 12_000L)
+            return
+        }
+        finishImsNetworkLost(callback, lostNetwork)
+    }
+
+    private fun finishImsNetworkLost(
         callback: ConnectivityManager.NetworkCallback,
         lostNetwork: Network,
     ) {
@@ -2641,6 +2661,7 @@ fun onWfcDisabled(reason: String) {
         Rlog.d(TAG, SipAckHandling.receivedLog(callId, currentCallId, call?.outgoing))
         if (call != null && !call.outgoing && currentCallId == callId) {
             callStarted.set(true)
+            srvccCallsChanged?.invoke()
             incomingAcceptedAwaitingAck.set(false)
 
             if (threadsStarted.compareAndSet(false, true)) {
@@ -3062,6 +3083,11 @@ fun onWfcDisabled(reason: String) {
 
     fun handleCancel(request: SipRequest): Int {
         val callId = request.callIdOrEmpty()
+        if (srvccTransferredDialogs.contains(callId)) return 200
+        if (srvccInProgress && callId in srvccTransferDialogs && request.method == SipMethod.BYE) {
+            srvccDeferredRemoteEnds[callId] = request
+            return 200
+        }
         val isBye = request.method == SipMethod.BYE
 
         handlePendingWaitingCancel(request, callId)?.let { return it }
@@ -3493,11 +3519,128 @@ fun onWfcDisabled(reason: String) {
         }
     }
 
+    @Volatile var srvccCallsChanged: (() -> Unit)? = null
     @Volatile var currentCall: Call? = null
-    private var heldForegroundCall: Call? = null
-    private var pendingSwapHeldActiveCall: Call? = null
-    private var pendingOutgoingInvite: PendingOutgoingInvite? = null
-    private var pendingWaitingInvite: PendingWaitingInvite? = null
+        set(value) { field = value; srvccCallsChanged?.invoke() }
+    @Volatile private var heldForegroundCall: Call? = null
+        set(value) { field = value; srvccCallsChanged?.invoke() }
+    @Volatile private var pendingSwapHeldActiveCall: Call? = null
+        set(value) { field = value; srvccCallsChanged?.invoke() }
+    @Volatile private var pendingOutgoingInvite: PendingOutgoingInvite? = null
+        set(value) { field = value; srvccCallsChanged?.invoke() }
+    @Volatile private var pendingWaitingInvite: PendingWaitingInvite? = null
+        set(value) { field = value; srvccCallsChanged?.invoke() }
+    @Volatile private var srvccInProgress = false
+    private var srvccAwaitingOutcome = false
+    private var srvccTransferDialogs = emptySet<String>()
+    private val srvccTransferredDialogs = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+    private val srvccDeferredRemoteEnds = java.util.concurrent.ConcurrentHashMap<String, SipRequest>()
+
+    fun srvccCallSnapshot(): List<me.phh.ims.SamsungSrvccCallList.Call> {
+        if (imsRegistrationTech != android.telephony.ims.stub.ImsRegistrationImplBase.REGISTRATION_TECH_LTE) return emptyList()
+        val calls = linkedMapOf<String, me.phh.ims.SamsungSrvccCallList.Call>()
+        fun add(call: Call?, state: Int) {
+            if (call == null) return
+            val id = call.callIdOrEmpty()
+            if (id.isEmpty()) return
+            val address = call.callHeaders[if (call.outgoing) "to" else "from"]?.firstOrNull().orEmpty()
+            val number = Regex("(?:sip|tel):([+0-9*#]+)").find(address)?.groupValues?.get(1).orEmpty()
+            calls[id] = me.phh.ims.SamsungSrvccCallList.Call(id, number, call.outgoing, state, false)
+        }
+        val active = currentCall
+        add(active, if (callStarted.get()) 1 else if (active?.outgoing == true) 4 else 5)
+        add(heldForegroundCall, 2)
+        add(pendingSwapHeldActiveCall, 2)
+        val pending = pendingOutgoingInvite
+        if (pending != null && !pending.cancelSent.get() && !calls.containsKey(pending.callId)) {
+            val number = Regex("(?:sip|tel):([+0-9*#]+)").find(pending.destination)
+                ?.groupValues?.get(1).orEmpty()
+            calls[pending.callId] = me.phh.ims.SamsungSrvccCallList.Call(
+                pending.callId, number, true, 3, false)
+        }
+        pendingWaitingInvite?.let { waiting ->
+            calls[waiting.callId] = me.phh.ims.SamsungSrvccCallList.Call(
+                waiting.callId, waiting.callerNumber, false, 6, false)
+        }
+        return calls.values.toList()
+    }
+
+    fun onSrvccStateChanged(state: Int, timedOut: Boolean = false) {
+        myHandler.post {
+            when (state) {
+                android.telephony.TelephonyManager.SRVCC_STATE_HANDOVER_STARTED -> {
+                    srvccAwaitingOutcome = true
+                    srvccTransferDialogs = srvccCallSnapshot().map { it.key }.toSet()
+                    srvccInProgress = true
+                }
+                android.telephony.TelephonyManager.SRVCC_STATE_HANDOVER_FAILED,
+                android.telephony.TelephonyManager.SRVCC_STATE_HANDOVER_CANCELED -> {
+                    srvccInProgress = false
+                    if (!timedOut) srvccAwaitingOutcome = false
+                    // Failure keeps media intact unless the peer actually hung up.
+                    val remoteEnds = srvccDeferredRemoteEnds.values.toList()
+                    srvccDeferredRemoteEnds.clear()
+                    remoteEnds.forEach { handleCancel(it) }
+                }
+                android.telephony.TelephonyManager.SRVCC_STATE_HANDOVER_COMPLETED -> {
+                    if (!srvccAwaitingOutcome) return@post
+                    srvccInProgress = false
+                    srvccAwaitingOutcome = false
+                    val transferred = listOfNotNull(currentCall, heldForegroundCall, pendingSwapHeldActiveCall)
+                        .filter { it.callIdOrEmpty() in srvccTransferDialogs }
+                    val pending = pendingOutgoingInvite?.takeIf { it.callId in srvccTransferDialogs }
+                    if (transferred.isEmpty() && pending == null) return@post
+                    // Android already migrated the connection to its CS tracker.
+                    // Never retire a later foreground dialog on a late completion.
+                    val retireMedia = currentCall == null || currentCall?.callIdOrEmpty() in srvccTransferDialogs
+                    if (retireMedia) {
+                        callGeneration.incrementAndGet()
+                        callStopped.set(true)
+                        callStarted.set(false)
+                        threadsStarted.set(false)
+                        incomingAcceptedAwaitingAck.set(false)
+                        incomingHangupAfterAck.set(false)
+                        currentCall = null
+                    }
+                    if (heldForegroundCall?.callIdOrEmpty() in srvccTransferDialogs) heldForegroundCall = null
+                    if (pendingSwapHeldActiveCall?.callIdOrEmpty() in srvccTransferDialogs) pendingSwapHeldActiveCall = null
+                    if (pending != null) {
+                        pending.rtpSocket.close()
+                        pendingOutgoingInvite = null
+                    }
+                    if (pendingWaitingInvite?.callId in srvccTransferDialogs) {
+                        pendingWaitingInvite?.setupState?.rtpSocket?.close()
+                        pendingWaitingInvite = null
+                    }
+                    srvccTransferDialogs.forEach { id ->
+                        srvccTransferredDialogs.add(id)
+                        myHandler.postDelayed({ srvccTransferredDialogs.remove(id) }, 60_000L)
+                    }
+                    transferred.forEach { it.rtpSocket.close() }
+                    srvccDeferredRemoteEnds.clear()
+                    if (retireMedia) {
+                        try {
+                            val audio = ctxt.getSystemService(android.media.AudioManager::class.java)
+                            audio.clearCommunicationDevice()
+                            // Release our mode request; Telecom owns the CS MODE_IN_CALL.
+                            audio.mode = android.media.AudioManager.MODE_NORMAL
+                        } catch (e: RuntimeException) {
+                            Rlog.w(TAG, "SRVCC audio ownership release failed", e)
+                        }
+                    }
+                    Rlog.i(TAG, "SRVCC completed: AP media retired without SIP hangup")
+                    if (retireMedia) {
+                        // CS now owns voice. Stop offering the old LTE IMS
+                        // transport while its PDN-loss cleanup grace expires.
+                        imsReady = false
+                        imsFailureCallback?.invoke()
+                        runDeferredImsReconnectAfterCallTerminalState("SRVCC completed")
+                    }
+                }
+            }
+        }
+    }
+
     private fun logDuplicateOutgoingConnectedOnce(callId: String, reason: String) {
         val key = "${callId.ifBlank { "<blank>" }}|$reason"
         if (!outgoingConnectedDuplicateLogKeys.add(key)) return
@@ -4516,6 +4659,7 @@ fun onWfcDisabled(reason: String) {
         Rlog.d(TAG, SipOutgoingInviteFinalAckState.sendingFinalInviteAckLog(msg2))
         synchronized(socket.gWriter()) { socket.gWriter().write(msg2.toByteArray()); socket.gWriter().flush() }
         callStarted.set(true)
+        srvccCallsChanged?.invoke()
         updateOutgoingDialogAfterFinalInviteAck(
             response = response,
             inviteCseq = cseq,
@@ -6335,6 +6479,7 @@ fun onWfcDisabled(reason: String) {
         currentCall = call
         callStopped.set(false)
         callStarted.set(true)
+        srvccCallsChanged?.invoke()
         threadsStarted.set(false)
 
         Rlog.w(
@@ -6358,6 +6503,7 @@ fun onWfcDisabled(reason: String) {
         currentCall = call
         callStopped.set(false)
         callStarted.set(true)
+        srvccCallsChanged?.invoke()
         threadsStarted.set(false)
 
         Rlog.w(
@@ -7174,6 +7320,7 @@ fun onWfcDisabled(reason: String) {
 
     fun handleCall(request: SipRequest): Int {
         val incomingCallId = request.headers["call-id"]!![0]
+        if (srvccTransferredDialogs.contains(incomingCallId)) return 481
         rejectRecentlyTerminatedIncomingInviteIfNeeded(
             incomingCallId = incomingCallId,
             request = request,

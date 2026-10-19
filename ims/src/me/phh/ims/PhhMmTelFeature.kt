@@ -210,6 +210,7 @@ class PhhMmTelFeature(
     private var featureInitialized = false
 
     val imsSms = PhhImsSms(slotId)
+    private var legacySrvcc: LegacySamsungSrvcc? = null
     lateinit var sipHandler: SipHandler
     private var sipHandlerSubId = SubscriptionManager.INVALID_SUBSCRIPTION_ID
     private var outgoingCallListener: ImsCallSessionListener? = null
@@ -237,8 +238,8 @@ class PhhMmTelFeature(
 
     private fun takeIncomingCallListener(callId: String?): ImsCallSessionListener? {
         synchronized(incomingCallListenersLock) {
-            val listener = callId?.let { incomingCallListenersByCallId.remove(it) }
-                ?: lastIncomingCallListener
+            val listener = if (callId != null) incomingCallListenersByCallId.remove(callId)
+                else lastIncomingCallListener
             if (listener != null && lastIncomingCallListener == listener) {
                 lastIncomingCallListener = incomingCallListenersByCallId.values.lastOrNull()
             }
@@ -326,6 +327,8 @@ class PhhMmTelFeature(
     }
 
     private fun retireSipHandler(reason: String) {
+        legacySrvcc?.close()
+        legacySrvcc = null
         if (
             this::sipHandler.isInitialized &&
             SubscriptionManager.isValidSubscriptionId(sipHandlerSubId)
@@ -540,6 +543,14 @@ class PhhMmTelFeature(
 
             override fun close() {
                 Rlog.d(TAG, "Closing call")
+                mState = State.TERMINATED
+                // SRVCC closes the IMS session without a termination callback.
+                // Drop only this session's listener, never a newer outgoing call.
+                if (this::mListener.isInitialized && outgoingCallListener === mListener) {
+                    outgoingCallListener = null
+                    outgoingCallActive = false
+                    outgoingCallSipCallId = null
+                }
             }
 
             override fun accept(callType: Int, profile: ImsStreamMediaProfile) {
@@ -547,7 +558,7 @@ class PhhMmTelFeature(
             }
 
             override fun isInCall(): Boolean {
-                return true
+                return mState != State.TERMINATED && mState != State.IDLE
             }
 
             override fun start(callee: String, profile: ImsCallProfile) {
@@ -887,6 +898,10 @@ class PhhMmTelFeature(
         val imsService = PhhImsService.Companion.instance!!
         sipHandlerSubId = subId
         sipHandler = SipHandler(imsService, slotId, subId)
+        legacySrvcc = LegacySamsungSrvcc(
+            mContext.getSystemService(TelephonyManager::class.java).createForSubscriptionId(subId),
+            sipHandler,
+        )
         sipHandler.imsFailureCallback = {
             sipRegistered = false
             refreshMmTelCapabilities("SIP deregistered")
@@ -918,6 +933,11 @@ class PhhMmTelFeature(
             val incomingSession = object: ImsCallSessionImplBase() {
                 var mState = State.IDLE
                 private var sessionListener: ImsCallSessionListener? = null
+                override fun close() {
+                    mState = State.TERMINATED
+                    forgetIncomingCallListener(incomingCallId)
+                    sessionListener = null
+                }
                 override fun getCallProfile(): ImsCallProfile {
                     return callProfile
                 }
