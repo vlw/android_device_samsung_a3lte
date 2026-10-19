@@ -70,8 +70,12 @@ forwarding, sustained throughput, multiple clients or physical RF coverage.
 On this 3.10 kernel the supported forwarding path is netfilter NAT. The device
 overlay disables TC BPF tethering acceleration because the accounting backport
 does not implement the required clsact/redirect path. Netd's BPF socket/UID
-accounting remains enabled. An unavailable hardware Offload HAL can still be
-reported before the framework selects its normal software fallback.
+accounting remains enabled. In this Android 12 branch,
+`BpfCoordinator.maybeAttachProgram()` does not check the offload flag: it still
+tries to attach TC programs and can log `EINVAL`. The overlay disables the
+offload forwarding rules; it does not eliminate those unconditional probes or
+implement missing kernel TC facilities. An unavailable hardware Offload HAL can
+also be reported before the framework selects its normal software fallback.
 
 ## Restore
 

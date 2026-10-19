@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- The 3.10 BPF accounting backport does not provide clsact/redirect
-         tethering acceleration. Use the working netfilter forwarding/NAT
-         path rather than repeatedly attempting unsupported TC attachments.
+         tethering acceleration. Keep forwarding rules on the working
+         netfilter/NAT path. Android 12 still probes TC attachment even
+         when this flag is false; those optional probes can log EINVAL.
          This does not disable netd's BPF socket/UID traffic accounting. -->
     <bool name="config_tether_enable_bpf_offload">false</bool>
 </resources>
