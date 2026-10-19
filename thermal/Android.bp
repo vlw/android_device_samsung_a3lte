@@ -1,0 +1,16 @@
+cc_library_shared {
+    name: "thermal.a3lte",
+    vendor: true,
+    relative_install_path: "hw",
+    srcs: ["thermal.cpp"],
+    shared_libs: ["libhardware"],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+}
+
+cc_binary {
+    name: "a3_thermal_test",
+    vendor: true,
+    srcs: ["thermal_test.cpp"],
+    shared_libs: ["libhardware"],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+}

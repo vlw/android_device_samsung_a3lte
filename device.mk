@@ -146,3 +146,7 @@ PRODUCT_HOST_PACKAGES += a3_ota_from_target_files
 
 # Device-specific signed video firmware and selection policy.
 $(call inherit-product, device/samsung/a3lte/media/media.mk)
+
+# Real sensors for the legacy Thermal 1.0 service.
+PRODUCT_PACKAGES += thermal.a3lte
+PRODUCT_VENDOR_PROPERTIES += ro.hardware.thermal=a3lte

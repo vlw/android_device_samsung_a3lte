@@ -1,0 +1,6 @@
+# The A3 thermal module reads physical sensors and /proc/stat only.
+allow hal_thermal_default sysfs_thermal:dir r_dir_perms;
+allow hal_thermal_default sysfs_thermal:file r_file_perms;
+allow hal_thermal_default sysfs_devices_system_cpu:dir r_dir_perms;
+allow hal_thermal_default sysfs_devices_system_cpu:file r_file_perms;
+allow hal_thermal_default proc_stat:file r_file_perms;
