@@ -1,0 +1,6 @@
+runtime_resource_overlay {
+    name: "A3lteTetheringOverlay",
+    resource_dirs: ["res"],
+    sdk_version: "current",
+    vendor: true,
+}

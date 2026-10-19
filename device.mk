@@ -153,3 +153,6 @@ PRODUCT_VENDOR_PROPERTIES += ro.hardware.thermal=a3lte
 
 # Required by debug.composition.type=c2d in msm8916-common/system.prop.
 PRODUCT_PACKAGES += copybit.msm8916
+
+# Match tethering acceleration capabilities to the legacy kernel.
+PRODUCT_PACKAGES += A3lteTetheringOverlay

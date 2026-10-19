@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The 3.10 BPF accounting backport does not provide clsact/redirect
+         tethering acceleration. Use the working netfilter forwarding/NAT
+         path rather than repeatedly attempting unsupported TC attachments.
+         This does not disable netd's BPF socket/UID traffic accounting. -->
+    <bool name="config_tether_enable_bpf_offload">false</bool>
+</resources>
