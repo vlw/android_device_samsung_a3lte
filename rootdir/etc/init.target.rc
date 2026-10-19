@@ -47,6 +47,10 @@ on property:sys.boot_completed=1
     swapon_all /vendor/etc/fstab.qcom
 
 on boot
+    # Boost at kernel input delivery, before Android's INTERACTION hint.
+    # Match its 998.4 MHz floor for 300 ms; keep idle governor settings intact.
+    write /sys/module/cpu_boost/parameters/input_boost_ms 300
+    write /sys/module/cpu_boost/parameters/input_boost_freq "0:998400 1:998400 2:998400 3:998400"
 
     # SEC NFC
     chmod 0660 /dev/sec-nfc
