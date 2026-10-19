@@ -150,3 +150,6 @@ $(call inherit-product, device/samsung/a3lte/media/media.mk)
 # Real sensors for the legacy Thermal 1.0 service.
 PRODUCT_PACKAGES += thermal.a3lte
 PRODUCT_VENDOR_PROPERTIES += ro.hardware.thermal=a3lte
+
+# Required by debug.composition.type=c2d in msm8916-common/system.prop.
+PRODUCT_PACKAGES += copybit.msm8916

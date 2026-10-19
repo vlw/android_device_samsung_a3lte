@@ -29,6 +29,10 @@ USE_CUSTOM_AUDIO_PLATFORM_INFO := true
 # Bluetooth
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(DEVICE_PATH)/bluetooth
 
+# Graphics
+# This target's legacy compositor selects C2D and requires its Copybit HAL.
+TARGET_USES_C2D_COMPOSITION := true
+
 # Filesystem
 BOARD_FLASH_BLOCK_SIZE := 131072
 BOARD_BOOTIMAGE_PARTITION_SIZE := 13631488
