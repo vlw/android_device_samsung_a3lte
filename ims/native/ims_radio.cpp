@@ -26,15 +26,31 @@ void** manager;
 void** secRil;
 using GetProxy = void* (*)(void*, int, int);
 using SetDomain = int (*)(void*, void*, int);
+using SetNasRegistration = int (*)(void*, void*, void*);
 GetProxy getProxy;
 SetDomain setDomain;
+SetNasRegistration setNasRegistration;
 
-void enqueue(Parse parse, char* packet, int length, int event) {
+bool enqueue(Parse parse, char* packet, int length, int event) {
     int parsedLength = 0, registrant = 0;
     void* object = parse(nullptr, packet, length, parsedLength, registrant);
+    if (!object) return false;
+    bool queued = true;
+    if (event == 200 && object && setNasRegistration) {
+        // The default Samsung IPC IMS_REGI command and Qualcomm NAS IMS
+        // registration status are separate interfaces. Update NAS through its
+        // normal proxy too, before handing the parser-owned state to the IMS
+        // worker. The asynchronous method encodes/copies the state on return.
+        void* proxy = getProxy(*secRil, 4, 1);
+        int status = proxy ? setNasRegistration(proxy, nullptr, object) : -1;
+        queued = status >= 0;
+        __android_log_print(ANDROID_LOG_INFO, LOG_TAG,
+            "NAS IMS registration notification queued result=%d", status);
+    }
     // The vendor parser constructs its own Object. CreateMessage takes ownership;
     // event 200/201 is handled on ImsManager's existing worker, never this socket thread.
     sendMessage(makeMessage(*manager, event, object));
+    return queued;
 }
 
 void* serve(void*) {
@@ -71,6 +87,7 @@ void* serve(void*) {
                 packet[5] <= 1 && packet[6] <= 3 && packet[7] == 0 &&
                 (packet[5] || packet[6] == 0) && *manager) {
             int state = packet[5] | (packet[6] << 1);
+            bool queued = true;
             if (state != previous) {
                 // Decode the original legacy IIL wire format with the RIL's own
                 // parser. No private C++ object layouts or text addresses are used.
@@ -79,7 +96,7 @@ void* serve(void*) {
                 char modernReg[15] = {15, 0, 0, 0, 112, 1, 3,
                     static_cast<char>(packet[5]), static_cast<char>(packet[6]), 0,
                     static_cast<char>(((packet[6] & 1) ? 4 : 0) | (packet[6] & 2)), 0, 0, 0, 0};
-                enqueue(parseRegistration, modernIil ? modernReg : reg,
+                queued = enqueue(parseRegistration, modernIil ? modernReg : reg,
                     modernIil ? sizeof(modernReg) : sizeof(reg), 200);
                 // 3GPP SMS, EUTRAN PS preferred (with CS fallback), UTRAN CS only,
                 // SS/USSD/emergency CS, no ePDG/eHRPD/video. Enable IMS only when
@@ -96,11 +113,13 @@ void* serve(void*) {
                 // LTE available while the AP is still registering.
                 void* proxy = getProxy(*secRil, 4, 1);
                 if (proxy) setDomain(proxy, nullptr, 3);
-                previous = state;
+                // A transient NAS failure must be retried by the AP heartbeat;
+                // an IPC-only update is insufficient for incoming VoLTE.
+                if (queued) previous = state;
                 __android_log_print(ANDROID_LOG_INFO, LOG_TAG,
                     "Queued Samsung IMS registration=%u capabilities=%u", packet[5], packet[6]);
             }
-            result = 0;
+            result = queued ? 0 : 1;
         }
         send(client, &result, 1, MSG_NOSIGNAL);
         close(client);
@@ -129,13 +148,15 @@ extern "C" const RIL_RadioFunctions* RIL_Init(const RIL_Env* env, int argc, char
     secRil = reinterpret_cast<void**>(dlsym(library, "_ZN6SecRil9mInstanceE"));
     getProxy = reinterpret_cast<GetProxy>(dlsym(library, "_ZN6SecRil13GetModemProxyE9ModemTypeS0_"));
     setDomain = reinterpret_cast<SetDomain>(dlsym(library, "_ZN10ModemProxy14SetVoiceDomainEP7Message15VoiceDomainPref"));
+    setNasRegistration = reinterpret_cast<SetNasRegistration>(dlsym(library,
+        "_ZN10ModemProxy21SetImsRegStateChangedEP7MessageP11ImsRegState"));
     // Validate the exported constructor ABI before choosing the corresponding
     // IIL registration format; never feed an unknown parser a guessed layout.
     void* legacyAbi = dlsym(library,
         "_ZN11ImsRegStateC2E12ImsRegStatusc11NetworkType9EcmpState9EpdgState15SmsOverIpFormati");
     modernIil = dlsym(library,
         "_ZN11ImsRegStateC2E12ImsRegStatusc11NetworkTypec9EcmpState9EpdgState15SmsOverIpFormati") != nullptr;
-    if (vendor && manager && secRil && (legacyAbi || modernIil) && getProxy && setDomain &&
+    if (vendor && manager && secRil && (legacyAbi || modernIil) && getProxy && setDomain && setNasRegistration &&
             parseRegistration && parsePreference && makeMessage && sendMessage) {
         pthread_t thread;
         if (!pthread_create(&thread, nullptr, serve, nullptr)) pthread_detach(thread);
