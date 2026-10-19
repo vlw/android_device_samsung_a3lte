@@ -16,6 +16,10 @@ class EvsSession(
     companion object {
         val PRIMARY_RATES = listOf(5900,7200,8000,9600,13200,16400,24400,32000,48000,64000,96000,128000)
         val IO_RATES = listOf(6600,8850,12650,14250,15850,18250,19850,23050,23850)
+        // Local transmit ceiling: full SWB up to 64 kbit/s. The negotiated
+        // br/bw still bound it; it is never exceeded by CMR either.
+        const val MAX_TX_RATE = 64000
+        const val PREFERRED_TX_BAND = 2
         fun validPair(rate: Int, band: Int): Boolean = when (band) {
             0 -> rate in PRIMARY_RATES && rate <= 24400
             1 -> rate in PRIMARY_RATES
@@ -30,7 +34,10 @@ class EvsSession(
         val band = txBands.filter { it <= bandLimit && validPair(rate,it) }.maxOrNull() ?: return null
         return EvsTransmitMode(rate,band,false)
     }
-    private val initialPrimary = primary(if (13200 in txRates) 13200 else 128000,3)
+    // Start at the highest negotiated rate (up to 64 kbit/s SWB) instead of
+    // 13.2: many networks never send a CMR, which kept the uplink at 13.2.
+    private val initialPrimary = primary(MAX_TX_RATE,PREFERRED_TX_BAND)
+        ?: primary(MAX_TX_RATE,3) ?: primary(128000,3)
     @Volatile var transmit: EvsTransmitMode = if (initialIo) {
         val mode = if (2 in ioModes) 2 else ioModes.maxOrNull()!!
         EvsTransmitMode(IO_RATES[mode],1,true)
@@ -72,7 +79,7 @@ class EvsSession(
                 // An out-of-session request is ignored, rather than silently
                 // changing to an unrelated bandwidth/rate.
                 if (band !in txBands || rate !in txRates || !validPair(rate,band)) return
-                primary(rate,band) ?: return
+                primary(minOf(rate,maxOf(MAX_TX_RATE,txRates.minOrNull()!!)),band) ?: return
             }
             5,6 -> {
                 val band = if (type == 5) 1 else 2
