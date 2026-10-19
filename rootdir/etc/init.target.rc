@@ -35,6 +35,13 @@ on init
     write /proc/sys/vm/min_free_kbytes 8192
     write /proc/sys/vm/swappiness 100
 
+on post-fs-data
+    # The partition named persist is FRP. Keep vendor runtime state in /data.
+    mkdir /data/vendor/a3-persist 0771 system system
+    restorecon_recursive /data/vendor/a3-persist
+    mount none /data/vendor/a3-persist /persist bind
+    restorecon_recursive /persist
+
 on property:sys.boot_completed=1
     # Enable ZRAM on boot_complete
     swapon_all /vendor/etc/fstab.qcom

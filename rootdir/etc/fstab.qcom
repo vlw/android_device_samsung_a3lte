@@ -15,7 +15,8 @@
 /dev/block/bootdevice/by-name/modem        /firmware-modem sdfat   ro,uid=1000,gid=1026,dmask=227,fmask=337,context=u:object_r:firmware_file:s0                    wait
 /dev/block/bootdevice/by-name/fota         /misc           emmc    defaults                                                                                        defaults
 
-/dev/block/bootdevice/by-name/persist      /persist        ext4    nosuid,nodev,noatime,noauto_da_alloc                        wait
+# "persist" is the raw FRP partition on SM-A300FU, not a filesystem.
+# Legacy vendor /persist storage is bound from /data/vendor by init.target.rc.
 /dev/block/bootdevice/by-name/hidden       /hidden         ext4    nosuid,nodev,noatime,noauto_da_alloc                        wait
 
 /dev/block/bootdevice/by-name/boot         /boot           emmc    defaults                                                    defaults
