@@ -4,3 +4,28 @@ cc_binary {
     srcs: ["bpf_probe.c"],
     cflags: ["-Wall", "-Wextra", "-Werror"],
 }
+
+cc_binary {
+    name: "a3_cpu_time_test",
+    srcs: ["cpu_time_test.cpp"],
+    shared_libs: ["libtimeinstate"],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+}
+
+cc_binary {
+    name: "a3_netlink_ack_test",
+    srcs: ["netlink_ack_test.c"],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+}
+
+cc_binary {
+    name: "a3_copybit_test",
+    vendor: true,
+    srcs: ["copybit_test.cpp"],
+    include_dirs: [
+        "hardware/qcom-caf/msm8916/display/libcopybit",
+        "hardware/qcom-caf/msm8916/display/libgralloc",
+    ],
+    shared_libs: ["libhardware", "liblog", "libcutils"],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+}
