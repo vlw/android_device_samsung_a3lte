@@ -69,9 +69,18 @@ cc_library_shared {
 cc_library_shared {
     name: "liba3ims_radio",
     vendor: true,
-    srcs: ["native/ims_radio.cpp"],
+    srcs: ["native/ims_radio.cpp", "native/ims_srvcc.cpp"],
     include_dirs: ["device/samsung/msm8916-common/ril/include"],
-    shared_libs: ["libdl", "liblog"],
+    shared_libs: ["libdl", "liblog", "libcrypto"],
     compile_multilib: "32",
     cflags: ["-Wall", "-Werror", "-DRIL_SHLIB"],
+}
+
+// Explicit parser diagnostic, not included in PRODUCT_PACKAGES.
+cc_binary {
+    name: "a3_srvcc_probe",
+    srcs: ["native/srvcc_probe.cpp"],
+    shared_libs: ["libdl"],
+    compile_multilib: "32",
+    cflags: ["-Wall", "-Werror"],
 }

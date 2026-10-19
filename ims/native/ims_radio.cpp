@@ -12,12 +12,60 @@
 #include <sys/system_properties.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <mutex>
+#include <unordered_set>
+#include <vector>
+#include "ims_srvcc.h"
 
 namespace {
 using Parse = void* (*)(void*, char*, int, int&, int&);
 using Message = void* (*)(void*, int, void*);
 using Send = int (*)(void*);
 const RIL_RadioFunctions* vendor;
+RIL_RadioFunctions forwarded;
+RIL_Env vendorEnvironment;
+const RIL_Env* frameworkEnvironment;
+std::mutex callTokensMutex;
+std::unordered_set<RIL_Token> callTokens;
+bool srvccEnabled = false;
+
+void onRequest(int request, void* data, size_t length, RIL_Token token) {
+    if (srvccEnabled && request == RIL_REQUEST_GET_CURRENT_CALLS) {
+        std::lock_guard<std::mutex> lock(callTokensMutex);
+        callTokens.insert(token);
+    }
+    vendor->onRequest(request, data, length, token);
+}
+
+void onComplete(RIL_Token token, RIL_Errno error, void* response, size_t length) {
+    bool calls;
+    {
+        std::lock_guard<std::mutex> lock(callTokensMutex);
+        calls = callTokens.erase(token) != 0;
+    }
+    if (calls && error == RIL_E_SUCCESS && response && length % sizeof(RIL_Call*) == 0) {
+        std::vector<RIL_Call*> csCalls;
+        auto entries = static_cast<RIL_Call**>(response);
+        for (size_t i = 0; i < length / sizeof(RIL_Call*); ++i) {
+            // Parser-created AP metadata has mIndex=-1 (wire index 255).
+            // It prepares SRVCC, but is already represented by ImsPhone. Only
+            // the modem's adopted CS calls with real indices belong in this HAL
+            // response; exposing metadata would create a duplicate CS call.
+            if (entries[i] && entries[i]->index != 255) csCalls.push_back(entries[i]);
+        }
+        frameworkEnvironment->OnRequestComplete(token, error,
+            csCalls.empty() ? nullptr : csCalls.data(), csCalls.size() * sizeof(RIL_Call*));
+        return;
+    }
+    frameworkEnvironment->OnRequestComplete(token, error, response, length);
+}
+void onCancel(RIL_Token token) {
+    {
+        std::lock_guard<std::mutex> lock(callTokensMutex);
+        callTokens.erase(token);
+    }
+    if (vendor->onCancel) vendor->onCancel(token);
+}
 Parse parseRegistration, parsePreference;
 Message makeMessage;
 Send sendMessage;
@@ -78,12 +126,21 @@ void* serve(void*) {
         uint8_t result = 1;
         char simState[PROP_VALUE_MAX]{};
         __system_property_get("gsm.sim.state", simState);
-        const bool radioReady = strcmp(simState, "LOADED") == 0;
+        const bool radioReady = strcmp(simState, "LOADED") == 0 && *secRil && *manager &&
+            vendor->onStateRequest && vendor->onStateRequest() == RADIO_STATE_ON;
         if (!radioReady) previous = -1;
-        if (radioReady && getsockopt(client, SOL_SOCKET, SO_PEERCRED, &peer, &length) == 0 &&
+        const bool authorizedPacket = radioReady &&
+                getsockopt(client, SOL_SOCKET, SO_PEERCRED, &peer, &length) == 0 &&
                 (peer.uid == 1000 || peer.uid == 0) &&
                 recv(client, packet, sizeof(packet), MSG_WAITALL) == sizeof(packet) &&
-                memcmp(packet, "A3IM", 4) == 0 && packet[4] == 1 &&
+                memcmp(packet, "A3IM", 4) == 0;
+        if (authorizedPacket && packet[4] == 2) {
+            unsigned bytes = packet[6] | (packet[7] << 8);
+            uint8_t calls[720]{};
+            if (bytes <= sizeof(calls) &&
+                (bytes == 0 || recv(client, calls, bytes, MSG_WAITALL) == static_cast<int>(bytes)))
+                result = submitSamsungSrvcc(calls, bytes, packet[5]) ? 0 : 1;
+        } else if (authorizedPacket && packet[4] == 1 &&
                 packet[5] <= 1 && packet[6] <= 3 && packet[7] == 0 &&
                 (packet[5] || packet[6] == 0) && *manager) {
             int state = packet[5] | (packet[6] << 1);
@@ -137,7 +194,10 @@ extern "C" const RIL_RadioFunctions* RIL_Init(const RIL_Env* env, int argc, char
     }
     auto init = reinterpret_cast<decltype(&RIL_Init)>(dlsym(library, "RIL_Init"));
     if (!init) return nullptr;
-    vendor = init(env, argc, argv);
+    frameworkEnvironment = env;
+    vendorEnvironment = *env;
+    vendorEnvironment.OnRequestComplete = onComplete;
+    vendor = init(&vendorEnvironment, argc, argv);
     manager = reinterpret_cast<void**>(dlsym(library, "_ZN10ImsManager9mInstanceE"));
     parseRegistration = reinterpret_cast<Parse>(dlsym(library,
         "_ZN16IpcProtocol41Iil20IpcRxIilRegistrationEPciRiR14RegistrantType"));
@@ -158,11 +218,16 @@ extern "C" const RIL_RadioFunctions* RIL_Init(const RIL_Env* env, int argc, char
         "_ZN11ImsRegStateC2E12ImsRegStatusc11NetworkTypec9EcmpState9EpdgState15SmsOverIpFormati") != nullptr;
     if (vendor && manager && secRil && (legacyAbi || modernIil) && getProxy && setDomain && setNasRegistration &&
             parseRegistration && parsePreference && makeMessage && sendMessage) {
+        srvccEnabled = initializeSamsungSrvcc(library, secRil, env->OnUnsolicitedResponse);
         pthread_t thread;
         if (!pthread_create(&thread, nullptr, serve, nullptr)) pthread_detach(thread);
     } else {
         // All normal radio operations remain the original vendor implementation.
         __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "Legacy IMS ABI unavailable; leaving radio unchanged");
     }
-    return vendor;
+    if (!vendor) return nullptr;
+    forwarded = *vendor;
+    forwarded.onRequest = onRequest;
+    forwarded.onCancel = onCancel;
+    return &forwarded;
 }

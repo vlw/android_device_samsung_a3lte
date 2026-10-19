@@ -23,7 +23,7 @@
 	<CscFeature_RIL_PDPRetryMechanism4>TRUE</CscFeature_RIL_PDPRetryMechanism4>
 	<CscFeature_RIL_SendDeviceCapaToCp>TRUE</CscFeature_RIL_SendDeviceCapaToCp>
 	<CscFeature_RIL_SetVolteCalllistToQcCp>TRUE</CscFeature_RIL_SetVolteCalllistToQcCp>
-	<CscFeature_RIL_SrvccRel>TRUE</CscFeature_RIL_SrvccRel>
+	<CscFeature_RIL_SrvccRel>9</CscFeature_RIL_SrvccRel>
 	<CscFeature_RIL_SsUsingUt>TRUE</CscFeature_RIL_SsUsingUt>
 	<CscFeature_RIL_SupportCallOnAirplaneMode>TRUE</CscFeature_RIL_SupportCallOnAirplaneMode>
 	<CscFeature_RIL_SupportEpdgOnAirplaneMode>TRUE</CscFeature_RIL_SupportEpdgOnAirplaneMode>
