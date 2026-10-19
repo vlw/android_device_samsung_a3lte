@@ -91,6 +91,17 @@ and restores the existing VoLTE setting, checking the resulting voice capability
 The default invocation is read-only. The probe waits for registration to complete
 before asserting availability.
 
+## SRVCC
+
+The device bridge now synchronizes the live IMS voice table with Samsung
+CallManager and its normal IPC/Qualcomm SRVCC call-config path. Real radio SRVCC
+notifications drive AP media retirement after Android transfers the connection
+to its CS tracker; failure/cancel retains the IMS session. IMS-PDN cleanup and
+late SIP termination cannot prematurely tear down a transferred call. The private
+RIL ABI is gated by the exact shipped library hash. See [SRVCC.md](SRVCC.md) for
+protocol, lifecycle, conservative release-9 scope, diagnostics and the required
+operator handover acceptance test. Local tests do not establish end-to-end SRVCC.
+
 ## SMS and USSD audit
 
 - SMS-SUBMIT gets an allocated TP-MR which is returned to Android for delivery
