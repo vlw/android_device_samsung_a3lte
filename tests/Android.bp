@@ -13,6 +13,15 @@ cc_binary {
 }
 
 cc_binary {
+    name: "a3_csc_feature_probe",
+    vendor: true,
+    srcs: ["csc_feature_probe.c"],
+    shared_libs: ["libdl"],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+    compile_multilib: "32",
+}
+
+cc_binary {
     name: "a3_netlink_ack_test",
     srcs: ["netlink_ack_test.c"],
     cflags: ["-Wall", "-Wextra", "-Werror"],

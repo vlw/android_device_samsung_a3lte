@@ -43,6 +43,10 @@ DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay
 PRODUCT_AAPT_CONFIG := normal
 PRODUCT_AAPT_PREF_CONFIG := hdpi
 
+# CSC features (read by the patched libsecnativefeature from /vendor/etc)
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/csc/others.xml:$(TARGET_COPY_OUT_VENDOR)/etc/others.xml
+
 # Audio
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/audio/acdb/Bluetooth_cal.acdb:$(TARGET_COPY_OUT_VENDOR)/etc/acdbdata/Bluetooth_cal.acdb \

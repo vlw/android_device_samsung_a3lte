@@ -67,6 +67,13 @@ if [ -f "$CAMERA_INTERFACE" ]; then
     python3 "$MY_DIR/camera/fix_preview_alignment.py" "$CAMERA_INTERFACE"
 fi
 
+# Samsung CSC features (feature.xml/others.xml) live in the vendor image, not
+# /system/csc. The replacement path has the same length, keeping offsets intact.
+SEC_NATIVE_FEATURE="$LINEAGE_ROOT/vendor/$VENDOR/$DEVICE/proprietary/vendor/lib/libsecnativefeature.so"
+if [ -f "$SEC_NATIVE_FEATURE" ]; then
+    sed -i "s|/system/csc|/vendor/etc|g" "$SEC_NATIVE_FEATURE"
+fi
+
 TWRP_QSEECOMD="$LINEAGE_ROOT"/vendor/"$VENDOR"/"$DEVICE"/proprietary/recovery/root/sbin/qseecomd
 
 sed -i "s|/system/bin/linker|/sbin/linker\x0\x0\x0\x0\x0\x0|g" "$TWRP_QSEECOMD"
