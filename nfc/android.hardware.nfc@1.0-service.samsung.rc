@@ -3,3 +3,6 @@ service vendor.nfc_hal_service /vendor/bin/hw/android.hardware.nfc@1.0-service.s
     class hal
     user nfc
     group nfc
+    # libnfc-nci aborts when its HAL dies. Keep the HAL alive until Android
+    # applications have exited during shutdown, instead of racing their kill.
+    shutdown critical

@@ -104,7 +104,7 @@ Return<NfcStatus> Nfc::open(const sp<INfcClientCallback>& clientCallback) {
 }
 
 Return<uint32_t> Nfc::write(const hidl_vec<uint8_t>& data) {
-    if (mDevice == nullptr || data.size() == 0) {
+    if (mDevice == nullptr || data.size() == 0 || data.size() > UINT16_MAX) {
         return 0;
     }
 
@@ -128,7 +128,10 @@ Return<uint32_t> Nfc::write(const hidl_vec<uint8_t>& data) {
         return data.size();
     }
 
-    return mDevice->write(mDevice, data.size(), &data[0]);
+    // The legacy ABI returns a signed error, whereas HIDL returns a byte
+    // count. Never turn an I/O error into a huge successful transfer.
+    int written = mDevice->write(mDevice, data.size(), &data[0]);
+    return written > 0 && static_cast<size_t>(written) <= data.size() ? written : 0;
 }
 
 Return<NfcStatus> Nfc::coreInitialized(const hidl_vec<uint8_t>& data) {

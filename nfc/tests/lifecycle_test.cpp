@@ -9,6 +9,7 @@ using namespace android::hardware::nfc::V1_0;
 using namespace android::hardware::nfc::V1_0::implementation;
 namespace {
 int opens, closes, writes, openResult;
+int writeResult = -2; // -2 selects normal full-length writes.
 nfc_stack_callback_t* event;
 nfc_stack_data_callback_t* data;
 #define CHECK(value) do { if (!(value)) { std::fprintf(stderr, "FAIL line %d: %s\n", __LINE__, #value); std::abort(); } } while (0)
@@ -23,7 +24,9 @@ int fakeOpen(const nfc_nci_device_t*, nfc_stack_callback_t* e, nfc_stack_data_ca
 int fakeClose(const nfc_nci_device_t*) {
     ++closes; event(HAL_NFC_CLOSE_CPLT_EVT, HAL_NFC_STATUS_OK); return 0;
 }
-int fakeWrite(const nfc_nci_device_t*, uint16_t len, const uint8_t*) { ++writes; return len; }
+int fakeWrite(const nfc_nci_device_t*, uint16_t len, const uint8_t*) {
+    ++writes; return writeResult == -2 ? len : writeResult;
+}
 }
 int main() {
     nfc_nci_device_t device{};
@@ -44,6 +47,17 @@ int main() {
     CHECK(first->packets == 1 && writes == 0); // Cached reset response replayed.
     hidl_vec<uint8_t> empty;
     CHECK(uint32_t(service->write(empty)) == 0 && writes == 0);
+    hidl_vec<uint8_t> oversized;
+    oversized.resize(65536);
+    CHECK(uint32_t(service->write(oversized)) == 0 && writes == 0);
+    writeResult = -1;
+    CHECK(uint32_t(service->write(resetCmd)) == 0 && writes == 1);
+    writeResult = 5;
+    CHECK(uint32_t(service->write(resetCmd)) == 0 && writes == 2);
+    writeResult = 2;
+    CHECK(uint32_t(service->write(resetCmd)) == 2 && writes == 3);
+    writeResult = -2;
+    CHECK(uint32_t(service->write(resetCmd)) == 4 && writes == 4);
     CHECK(NfcStatus(service->close()) == NfcStatus::OK && closes == 1);
     CHECK(NfcStatus(service->close()) == NfcStatus::FAILED && closes == 1);
     CHECK(NfcStatus(service->open(second)) == NfcStatus::OK && opens == 2);
@@ -51,11 +65,11 @@ int main() {
     CHECK(closes == 1);
     service->serviceDied(2, nullptr);
     CHECK(closes == 2);
-    CHECK(uint32_t(service->write(resetCmd)) == 0 && writes == 0);
+    CHECK(uint32_t(service->write(resetCmd)) == 0 && writes == 4);
     openResult = -1;
     CHECK(NfcStatus(service->open(first)) == NfcStatus::FAILED && opens == 3);
     openResult = 0;
     CHECK(NfcStatus(service->open(second)) == NfcStatus::OK && opens == 4);
     CHECK(NfcStatus(service->close()) == NfcStatus::OK && closes == 3);
-    std::puts("PASS overlapping open, reset replay, duplicate completion, stale death, close, failed-open retry; no hardware");
+    std::puts("PASS overlapping open, reset replay, write errors/size/partial count, duplicate completion, stale death, close, failed-open retry; no hardware");
 }
