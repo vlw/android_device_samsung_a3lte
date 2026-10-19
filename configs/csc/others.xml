@@ -7,7 +7,38 @@
   <FeatureSet>
     <CscFeature_Web_EnableAutoSimHomeUrlInProfile>TRUE</CscFeature_Web_EnableAutoSimHomeUrlInProfile>
 	<CscFeature_RIL_EnableLaunchBrowser>TRUE</CscFeature_RIL_EnableLaunchBrowser>
+	<CscFeature_RIL_ApnControlByModem>TRUE</CscFeature_RIL_ApnControlByModem>
+	<CscFeature_RIL_BlockUssdDuringVolteCall>TRUE</CscFeature_RIL_BlockUssdDuringVolteCall>
+	<CscFeature_RIL_ChangeErrCause>TRUE</CscFeature_RIL_ChangeErrCause>
+	<CscFeature_RIL_CheckImsRegDuringE911>TRUE</CscFeature_RIL_CheckImsRegDuringE911>
+	<CscFeature_RIL_CheckTtyModeWhenE911>TRUE</CscFeature_RIL_CheckTtyModeWhenE911>
+	<CscFeature_RIL_CurrentPlmnIndCheck>TRUE</CscFeature_RIL_CurrentPlmnIndCheck>
+	<CscFeature_RIL_DisplayRatInfoInManualNetSearchList>TRUE</CscFeature_RIL_DisplayRatInfoInManualNetSearchList>
+	<CscFeature_RIL_DisplayStkUssdDialog>TRUE</CscFeature_RIL_DisplayStkUssdDialog>
+	<CscFeature_RIL_EnablePlmnNameIndReporting>TRUE</CscFeature_RIL_EnablePlmnNameIndReporting>
+	<CscFeature_RIL_ForceRel7Fd>TRUE</CscFeature_RIL_ForceRel7Fd>
+	<CscFeature_RIL_IgnoreNitzNetworkName>TRUE</CscFeature_RIL_IgnoreNitzNetworkName>
+	<CscFeature_RIL_IgnorePsVoiceIndicationDuringVolte>TRUE</CscFeature_RIL_IgnorePsVoiceIndicationDuringVolte>
+	<CscFeature_RIL_NwSupportAcbInfo>TRUE</CscFeature_RIL_NwSupportAcbInfo>
+	<CscFeature_RIL_PDPRetryMechanism4>TRUE</CscFeature_RIL_PDPRetryMechanism4>
+	<CscFeature_RIL_SendDeviceCapaToCp>TRUE</CscFeature_RIL_SendDeviceCapaToCp>
+	<CscFeature_RIL_SetVolteCalllistToQcCp>TRUE</CscFeature_RIL_SetVolteCalllistToQcCp>
+	<CscFeature_RIL_SrvccRel>TRUE</CscFeature_RIL_SrvccRel>
+	<CscFeature_RIL_SsUsingUt>TRUE</CscFeature_RIL_SsUsingUt>
+	<CscFeature_RIL_SupportCallOnAirplaneMode>TRUE</CscFeature_RIL_SupportCallOnAirplaneMode>
+	<CscFeature_RIL_SupportEpdgOnAirplaneMode>TRUE</CscFeature_RIL_SupportEpdgOnAirplaneMode>
+	<CscFeature_RIL_SupportQualcommIms>TRUE</CscFeature_RIL_SupportQualcommIms>
+	<CscFeature_RIL_SupportQualcommImsOverIpc>TRUE</CscFeature_RIL_SupportQualcommImsOverIpc>
+	<CscFeature_RIL_SupportSrvcc>TRUE</CscFeature_RIL_SupportSrvcc>
+	<CscFeature_RIL_SupportVolte>TRUE</CscFeature_RIL_SupportVolte>
+	<CscFeature_RIL_SupportVolteE911>TRUE</CscFeature_RIL_SupportVolteE911>
+	<CscFeature_RIL_SupportVolteTotalCallTime>TRUE</CscFeature_RIL_SupportVolteTotalCallTime>
+	<CscFeature_RIL_SupportVolteVtCall>TRUE</CscFeature_RIL_SupportVolteVtCall>
+	<CscFeature_RIL_UseMpsForImsSetting>TRUE</CscFeature_RIL_UseMpsForImsSetting>
+	<CscFeature_RIL_UseRatInfoDuringPlmnSelection>TRUE</CscFeature_RIL_UseRatInfoDuringPlmnSelection>
+	<CscFeature_RIL_UssdErrorDoNotDisplay>TRUE</CscFeature_RIL_UssdErrorDoNotDisplay>
 	<CscFeature_RIL_Display4gPlusIconBandwidth>15</CscFeature_RIL_Display4gPlusIconBandwidth>
-    <CscFeature_SmartManager_ConfigSubFeatures>roguepopup|autoclean|autorestart</CscFeature_SmartManager_ConfigSubFeatures>	 <CscFeature_Setting_IncludeApn4SwUpdate>true</CscFeature_Setting_IncludeApn4SwUpdate>
+    <CscFeature_SmartManager_ConfigSubFeatures>roguepopup|autoclean|autorestart</CscFeature_SmartManager_ConfigSubFeatures>
+	 <CscFeature_Setting_IncludeApn4SwUpdate>true</CscFeature_Setting_IncludeApn4SwUpdate>
   </FeatureSet>
 </SamsungMobileFeauture>
