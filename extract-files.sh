@@ -67,7 +67,7 @@ if [ -f "$WIDEVINE_ENGINE" ]; then
     python3 "$MY_DIR/media/fix_widevine_abi.py" "$WIDEVINE_ENGINE"
 fi
 
-# CSG3 ISP preview stride must match the current Adreno allocator (32 pixels).
+# Samsung ISP preview stride must match the current Adreno allocator (32 pixels).
 CAMERA_INTERFACE="$LINEAGE_ROOT/vendor/$VENDOR/$DEVICE/proprietary/vendor/lib/libmmcamera_interface.so"
 if [ -f "$CAMERA_INTERFACE" ]; then
     python3 "$MY_DIR/camera/fix_preview_alignment.py" "$CAMERA_INTERFACE"
