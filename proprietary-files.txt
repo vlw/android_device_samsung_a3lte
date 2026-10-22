@@ -229,4 +229,5 @@ bin/time_daemon:vendor/bin/time_daemon
 vendor/lib/libTimeService.so
 
 # Widevine - from angler - OPR6.170623.017 factory image
+# After extraction, fix_widevine_abi.py selects the packaged VNDK29 protobuf ABI.
 vendor/lib/mediadrm/libwvdrmengine.so|66ba66d047044f92eb0eada1faf6a5799ded90ab

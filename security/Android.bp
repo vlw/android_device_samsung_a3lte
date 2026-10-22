@@ -129,3 +129,12 @@ cc_binary {
     shared_libs: ["libselinux"],
     cflags: ["-Wall", "-Wextra", "-Werror"],
 }
+
+cc_binary {
+    name: "a3_drm_load_probe",
+    vendor: true,
+    srcs: ["tests/DrmLoadProbe.cpp"],
+    shared_libs: ["libdl", "libutils"],
+    header_libs: ["media_plugin_headers"],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+}

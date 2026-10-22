@@ -61,6 +61,12 @@ setup_vendor "$DEVICE" "$VENDOR" "$LINEAGE_ROOT" false "$CLEAN_VENDOR"
 extract "$MY_DIR"/proprietary-files.txt "$SRC" "$SECTION"
 extract "$MY_DIR"/proprietary-files-twrp.txt "$SRC" "$SECTION"
 
+# The angler CDM needs its legacy protobuf ABI, not Android12's system copy.
+WIDEVINE_ENGINE="$LINEAGE_ROOT/vendor/$VENDOR/$DEVICE/proprietary/vendor/lib/mediadrm/libwvdrmengine.so"
+if [ -f "$WIDEVINE_ENGINE" ]; then
+    python3 "$MY_DIR/media/fix_widevine_abi.py" "$WIDEVINE_ENGINE"
+fi
+
 # CSG3 ISP preview stride must match the current Adreno allocator (32 pixels).
 CAMERA_INTERFACE="$LINEAGE_ROOT/vendor/$VENDOR/$DEVICE/proprietary/vendor/lib/libmmcamera_interface.so"
 if [ -f "$CAMERA_INTERFACE" ]; then
