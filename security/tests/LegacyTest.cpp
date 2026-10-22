@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <openssl/evp.h>
 #include <openssl/mem.h>
+#include <openssl/pkcs8.h>
 #include <openssl/rsa.h>
 #include <openssl/x509.h>
 #include <cstdlib>
@@ -101,4 +102,50 @@ TEST(NativeModern, HidlRsaSha256AndApplicationBinding) {
     ASSERT_EQ(EVP_DigestVerifyInit(digest.get(),nullptr,EVP_sha256(),nullptr,pk.get()),1);
     EXPECT_EQ(EVP_DigestVerify(digest.get(),signature.data(),signature.size(),message.data(),message.size()),1);
     EXPECT_EQ(hal->deleteKey(blob),ErrorCode::OK);
+}
+
+// Optional comparison: stage the unchanged FU CSG3 Android6 userspace HAL only.
+// It loads keymaste from /firmware/image; no donor TA is staged or selected.
+TEST(NativeStock6, RsaImportAndPrivateOperation) {
+    void* library=dlopen("/data/local/tmp/a3tee-native/keystore-stock6.qcom.so",RTLD_NOW|RTLD_LOCAL);
+    if (!library) GTEST_SKIP() << "Stock6 userspace HAL is not staged";
+    auto* module=static_cast<hw_module_t*>(dlsym(library,HAL_MODULE_INFO_SYM_AS_STR));
+    ASSERT_NE(module,nullptr);
+    ASSERT_EQ(module->module_api_version,KEYMASTER_MODULE_API_VERSION_0_3);
+    auto* native=a3tee::openNativeLegacy();ASSERT_NE(native,nullptr);
+    auto exportPublic=native->get_keypair_public;
+    ASSERT_EQ(keymaster0_close(native),0);
+    keymaster0_device_t* device=nullptr;
+    ASSERT_EQ(keymaster0_open(module,&device),0);ASSERT_NE(device,nullptr);
+    printf("Stock6 module API=0x%x flags=0x%x\n",module->module_api_version,device->flags);
+    ASSERT_FALSE(device->flags&KEYMASTER_SOFTWARE_ONLY);
+    device->get_keypair_public=exportPublic; // Use current crypto ABI for public export.
+    bssl::UniquePtr<EVP_PKEY_CTX> generator(EVP_PKEY_CTX_new_id(EVP_PKEY_RSA,nullptr));
+    ASSERT_NE(generator,nullptr);ASSERT_EQ(EVP_PKEY_keygen_init(generator.get()),1);
+    ASSERT_EQ(EVP_PKEY_CTX_set_rsa_keygen_bits(generator.get(),2048),1);
+    EVP_PKEY* generated=nullptr;ASSERT_EQ(EVP_PKEY_keygen(generator.get(),&generated),1);
+    bssl::UniquePtr<EVP_PKEY> source(generated);
+    bssl::UniquePtr<PKCS8_PRIV_KEY_INFO> pkcs8(EVP_PKEY2PKCS8(source.get()));
+    ASSERT_NE(pkcs8,nullptr);
+    int encodedSize=i2d_PKCS8_PRIV_KEY_INFO(pkcs8.get(),nullptr);ASSERT_GT(encodedSize,0);
+    std::vector<uint8_t> encoded(encodedSize);auto* encodedPtr=encoded.data();
+    ASSERT_EQ(i2d_PKCS8_PRIV_KEY_INFO(pkcs8.get(),&encodedPtr),encodedSize);
+    uint8_t *key=nullptr,*pub=nullptr,*signature=nullptr;
+    size_t keySize=0,pubSize=0,signatureSize=0;
+    ASSERT_EQ(device->import_keypair(device,encoded.data(),encoded.size(),&key,&keySize),0);
+    OPENSSL_cleanse(encoded.data(),encoded.size());
+    ASSERT_EQ(device->get_keypair_public(device,key,keySize,&pub,&pubSize),0);
+    const uint8_t* ptr=pub;
+    bssl::UniquePtr<EVP_PKEY> publicKey(d2i_PUBKEY(nullptr,&ptr,pubSize));
+    ASSERT_NE(publicKey,nullptr);EXPECT_EQ(EVP_PKEY_cmp(source.get(),publicKey.get()),1);
+    uint8_t input[256]{};input[255]=0x73;
+    keymaster_rsa_sign_params_t sign{DIGEST_NONE,PADDING_NONE};
+    ASSERT_EQ(device->sign_data(device,&sign,key,keySize,input,sizeof(input),&signature,&signatureSize),0);
+    ASSERT_EQ(signatureSize,sizeof(input));
+    bssl::UniquePtr<RSA> rsa(EVP_PKEY_get1_RSA(publicKey.get()));
+    uint8_t recovered[256];
+    ASSERT_EQ(RSA_public_decrypt(signatureSize,signature,recovered,rsa.get(),RSA_NO_PADDING),256);
+    EXPECT_EQ(memcmp(input,recovered,sizeof(input)),0);
+    OPENSSL_cleanse(key,keySize);free(key);free(pub);free(signature);
+    EXPECT_EQ(keymaster0_close(device),0);dlclose(library);
 }
