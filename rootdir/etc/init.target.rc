@@ -36,6 +36,10 @@ on init
     write /proc/sys/vm/swappiness 100
 
 on post-fs-data
+    # Use the ramoops crash record capacity instead of the 10-KiB default.
+    # Android's main init.rc has already mounted pstore.
+    mount pstore pstore /sys/fs/pstore remount nodev noexec nosuid kmsg_bytes=262144
+
     # The partition named persist is FRP. Keep vendor runtime state in /data.
     mkdir /data/vendor/a3-persist 0771 system system
     restorecon_recursive /data/vendor/a3-persist
