@@ -2,7 +2,7 @@
 
 Validated 2026-10-19 on the connected Android 12.1 engineering build. All source
 changes are in device/vendor; no framework, external codec or kernel sources
-were edited. Venus 00155 remains selected separately (see VENUS_UPDATE.md).
+were edited. Venus is loaded from the native firmware partition (see NATIVE_FIRMWARE_POLICY.md).
 
 ## Implementation
 
