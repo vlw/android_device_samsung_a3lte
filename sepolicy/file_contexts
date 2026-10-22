@@ -19,3 +19,6 @@
 /vendor/lib/libmmcamera_faceproc\.so                  u:object_r:vendor_file:s0
 
 /(vendor|system/vendor)/bin/hw/android\.hardware\.vibrator-service\.a3lte    u:object_r:hal_vibrator_default_exec:s0
+
+# CM36652 reads this factory cancellation value from its sysfs callbacks.
+/efs/prox_cal                                      u:object_r:sensor_efs_file:s0

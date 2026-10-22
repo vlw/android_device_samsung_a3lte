@@ -36,6 +36,9 @@ on init
     write /proc/sys/vm/swappiness 100
 
 on post-fs-data
+    # /efs is mounted by fs; label the factory sensor value before HAL use.
+    restorecon /efs/prox_cal
+
     # Use the ramoops crash record capacity instead of the 10-KiB default.
     # Android's main init.rc has already mounted pstore.
     mount pstore pstore /sys/fs/pstore remount nodev noexec nosuid kmsg_bytes=262144
