@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-import subprocess
+import struct
 
-DEVICE_VENDOR_DIR = os.path.join(os.environ.get('ANDROID_BUILD_TOP', ''), 'vendor', 'samsung', 'a3lte', 'dtimages')
+import common
 
-INSTALL_MY_PATH = os.path.join('install', 'dtimage')
+INSTALL_MY_PATH = 'install/dtimage'
 
 def FullOTA_InstallEnd(self):
   AddFirmwareFlash(self, self.input_zip)
@@ -26,13 +25,30 @@ def IncrementalOTA_InstallEnd(self):
   AddFirmwareFlash(self, self.target_zip)
 
 def AddFirmwareFlash(self, input_zip):
-  """Include required binaries to the output zip"""
-  self.output_zip.write(os.path.join(DEVICE_VENDOR_DIR, 'dtFU.img'), os.path.join(INSTALL_MY_PATH, 'dtFU.img'))
-  self.output_zip.write(os.path.join(DEVICE_VENDOR_DIR, 'dtH.img'), os.path.join(INSTALL_MY_PATH, 'dtH.img'))
-  self.output_zip.write(os.path.join(DEVICE_VENDOR_DIR, 'kernel_make.sh'), os.path.join(INSTALL_MY_PATH, 'kernel_make.sh'))
-  self.output_zip.write(os.path.join(DEVICE_VENDOR_DIR, 'kernel_unpack.sh'), os.path.join(INSTALL_MY_PATH, 'kernel_unpack.sh'))
-  self.output_zip.write(os.path.join(DEVICE_VENDOR_DIR, 'mkbootimg'), os.path.join(INSTALL_MY_PATH, 'mkbootimg'))
-  self.output_zip.write(os.path.join(DEVICE_VENDOR_DIR, 'unpackbootimg'), os.path.join(INSTALL_MY_PATH, 'unpackbootimg'))
+  """Use only artifacts carried by this exact target-files archive."""
+  payload = {}
+  for name in ('dtF.img', 'dtFU.img', 'dtH.img', 'kernel_make.sh',
+               'kernel_unpack.sh', 'mkbootimg', 'unpackbootimg'):
+    try:
+      payload[name] = input_zip.read('RADIO/' + name)
+    except KeyError:
+      raise common.ExternalError('a3lte: target-files is missing RADIO/' + name +
+                                 '; rebuild target-files with all three DT images')
+    if not payload[name]:
+      raise common.ExternalError('a3lte: empty RADIO/' + name)
+  for name, entries in (('dtF.img', 8), ('dtFU.img', 4), ('dtH.img', 20)):
+    data = payload[name]
+    if len(data) < 12 or struct.unpack_from('<4sII', data) != (b'QCDT', 2, entries):
+      raise common.ExternalError('a3lte: invalid model DT table in RADIO/' + name)
+  try:
+    default_dt = input_zip.read('BOOT/dt')
+  except KeyError:
+    raise common.ExternalError('a3lte: target-files is missing BOOT/dt')
+  if default_dt != payload['dtF.img']:
+    raise common.ExternalError('a3lte: BOOT/dt does not match the built F image')
+  for name in ('dtFU.img', 'dtH.img', 'kernel_make.sh', 'kernel_unpack.sh',
+               'mkbootimg', 'unpackbootimg'):
+    common.ZipWriteStr(self.output_zip, INSTALL_MY_PATH + '/' + name, payload[name])
   """Core script to flash dt images"""
   self.script.AppendExtra('if is_substring("A300FUXX", getprop("ro.bootloader")) || is_substring("A300HXX", getprop("ro.bootloader")) then')
   self.script.AppendExtra('ui_print("Hardware is not default, tuning system...");')

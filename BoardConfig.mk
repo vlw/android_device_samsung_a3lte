@@ -51,6 +51,8 @@ TARGET_RECOVERY_DEVICE_MODULES := libinit_a3
 
 # Kernel
 TARGET_KERNEL_CONFIG := lineageos_a3_defconfig
+include $(DEVICE_PATH)/dtimages/variants.mk
+BOARD_CUSTOM_BOOTIMG_MK := $(DEVICE_PATH)/dtimages/bootimg.mk
 
 # Power
 TARGET_HAS_NO_POWER_STATS := true
