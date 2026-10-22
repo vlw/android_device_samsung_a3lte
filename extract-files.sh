@@ -27,7 +27,7 @@ if [[ ! -d "$MY_DIR" ]]; then MY_DIR="$PWD"; fi
 
 LINEAGE_ROOT="$MY_DIR"/../../..
 
-HELPER="$LINEAGE_ROOT"/vendor/lineage/build/tools/extract_utils.sh
+HELPER="$LINEAGE_ROOT"/tools/extract-utils/extract_utils.sh
 if [ ! -f "$HELPER" ]; then
     echo "Unable to find helper script at $HELPER"
     exit 1
@@ -61,8 +61,9 @@ setup_vendor "$DEVICE" "$VENDOR" "$LINEAGE_ROOT" false "$CLEAN_VENDOR"
 extract "$MY_DIR"/proprietary-files.txt "$SRC" "$SECTION"
 extract "$MY_DIR"/proprietary-files-twrp.txt "$SRC" "$SECTION"
 
-# The angler CDM needs its legacy protobuf ABI, not Android12's system copy.
-WIDEVINE_ENGINE="$LINEAGE_ROOT/vendor/$VENDOR/$DEVICE/proprietary/vendor/lib/mediadrm/libwvdrmengine.so"
+# The angler donor CDM lives in the common vendor tree and needs its legacy
+# protobuf ABI, not Android12's system copy.
+WIDEVINE_ENGINE="$LINEAGE_ROOT/vendor/$VENDOR/msm8916-common/proprietary/vendor/lib/mediadrm/libwvdrmengine.so"
 if [ -f "$WIDEVINE_ENGINE" ]; then
     python3 "$MY_DIR/media/fix_widevine_abi.py" "$WIDEVINE_ENGINE"
 fi

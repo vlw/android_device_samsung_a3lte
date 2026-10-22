@@ -228,6 +228,6 @@ bin/time_daemon:vendor/bin/time_daemon
 -vendor/lib/libtime_genoff.so
 vendor/lib/libTimeService.so
 
-# Widevine - from angler - OPR6.170623.017 factory image
-# After extraction, fix_widevine_abi.py selects the packaged VNDK29 protobuf ABI.
-vendor/lib/mediadrm/libwvdrmengine.so|66ba66d047044f92eb0eada1faf6a5799ded90ab
+# Widevine: the CDM is an angler (OPR6.170623.017) donor kept in
+# vendor/samsung/msm8916-common and packaged from there. It is not extracted
+# from the device; extract-files.sh only applies fix_widevine_abi.py to it.
