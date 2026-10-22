@@ -126,6 +126,9 @@ void* serve(void*) {
         uint8_t result = 1;
         char simState[PROP_VALUE_MAX]{};
         __system_property_get("gsm.sim.state", simState);
+        // Comma-separated per slot on DSDS hardware ("LOADED,ABSENT"); this
+        // RIL instance serves slot 0, the first element.
+        simState[strcspn(simState, ",")] = '\0';
         const bool radioReady = strcmp(simState, "LOADED") == 0 && *secRil && *manager &&
             vendor->onStateRequest && vendor->onStateRequest() == RADIO_STATE_ON;
         if (!radioReady) previous = -1;

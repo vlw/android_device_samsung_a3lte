@@ -15,6 +15,7 @@ class LegacySamsungImsRadio {
     private var features = 0
     private var closed = false
     private var lastResult = -1
+    private var retryDelayMs = MIN_RETRY_MS
     private val sync = object : Runnable {
         override fun run() {
             val result = sendState()
@@ -22,8 +23,19 @@ class LegacySamsungImsRadio {
                 Rlog.i("A3ImsRadio", "Legacy radio state synchronization result=$result")
                 lastResult = result
             }
-            if (!closed) handler.postDelayed(this, if (result == 0) 10_000L else 1_000L)
+            // Success keeps the NAS heartbeat. A radio without a loaded SIM
+            // can stay unready indefinitely, so back off instead of
+            // reconnecting every second; update() still resyncs immediately.
+            val delayMs = if (result == 0) HEARTBEAT_MS else retryDelayMs
+            retryDelayMs = if (result == 0) MIN_RETRY_MS else (retryDelayMs * 2).coerceAtMost(MAX_RETRY_MS)
+            if (!closed) handler.postDelayed(this, delayMs)
         }
+    }
+
+    private companion object {
+        const val HEARTBEAT_MS = 10_000L
+        const val MIN_RETRY_MS = 1_000L
+        const val MAX_RETRY_MS = 30_000L
     }
 
     init { handler.post(sync) }
@@ -34,6 +46,7 @@ class LegacySamsungImsRadio {
             if (!closed) {
                 this.registered = registered
                 features = if (registered) (if (voice) 1 else 0) or (if (sms) 2 else 0) else 0
+                retryDelayMs = MIN_RETRY_MS
                 handler.removeCallbacks(sync)
                 handler.post(sync)
             }
