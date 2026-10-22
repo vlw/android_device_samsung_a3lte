@@ -37,7 +37,13 @@ object SipUplinkAudioLoop {
 
         var firstPacket = true
         var realFrameCount = 0
-        val buffer = ByteArray(bufferSize)
+        // Read one codec frame at a time. Reading the whole AudioRecord buffer
+        // (40 ms at 48 kHz, 120 ms at 16 kHz) made every read wait for several
+        // frames and sent them as back-to-back RTP bursts, adding that much
+        // capture latency plus jitter the far-end buffer then absorbs.
+        val frameBytes = audioCodec.sampleRate * audioCodec.frameDurationMs / 1000 *
+            audioCodec.channelCount * 2
+        val buffer = ByteArray(frameBytes.takeIf { it in 1..bufferSize } ?: bufferSize)
 
         while (true) {
             if (callStopped.get() || callGeneration.get() != generation) break

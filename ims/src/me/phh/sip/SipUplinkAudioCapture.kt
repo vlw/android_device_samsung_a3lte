@@ -36,12 +36,14 @@ object SipUplinkAudioCaptureStarter {
         }
 
         val audioRecord = try {
+            // The loop reads single frames, so extra capacity is only overrun
+            // headroom for a late wakeup; it does not add capture latency.
             SipAudioRecordFactory.createVoiceCommunicationRecord(
-                bufferSize = minBufferSize,
+                bufferSize = minBufferSize * 2,
                 audioCodec = audioCodec,
             )
         } catch (t: Throwable) {
-            Rlog.e(logTag, "AudioRecord creation failed with bufferSize=$minBufferSize", t)
+            Rlog.e(logTag, "AudioRecord creation failed with bufferSize=${minBufferSize * 2}", t)
             try {
                 encoder.stop()
             } catch (_: Throwable) {
