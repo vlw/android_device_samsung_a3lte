@@ -7388,6 +7388,7 @@ fun onWfcDisabled(reason: String) {
             // lazy AMR-WB MediaCodec probe, which outlasts the network's
             // INVITE retransmission timer. A later 488 is still valid after 100.
             sendExplicitTryingForIncomingInvite(request, incomingResponseWriter)
+            SipIncomingCallPrewarm.start(ctxt)
             val incomingOffer = parseIncomingInviteOffer(request, incomingCallId) ?: return 488
             startIncomingInviteDialogSetup(request, incomingCallId, incomingResponseWriter,
                 incomingOffer, lease)
