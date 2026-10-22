@@ -23,6 +23,9 @@ DEVICE_CAMERA_LIBS := vendor/samsung/a3lte/proprietary/vendor/lib
 # Keep the original Samsung radio behind the device IMS-state adaptor.
 DEVICE_RIL_LIBPATH := /vendor/lib/liba3ims_radio.so
 
+# Select hardware security before the common product chooses Gatekeeper.
+include device/samsung/a3lte/security/security.mk
+
 # Signed Venus stays on the device firmware partition for every A3 variant.
 DEVICE_USES_NATIVE_VENUS_FIRMWARE := true
 

@@ -1,0 +1,131 @@
+// SPDX-License-Identifier: Apache-2.0
+cc_defaults {
+    name: "a3tee_defaults",
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+    cpp_std: "c++17",
+    header_libs: ["libhardware_headers"],
+    shared_libs: ["libcrypto"],
+}
+
+cc_library_static {
+    name: "liba3tee_backend",
+    defaults: ["a3tee_defaults"],
+    vendor: true,
+    host_supported: true,
+    srcs: ["Protocol.cpp", "KeyMaterial.cpp", "Keymaster.cpp", "Gatekeeper.cpp"],
+    export_include_dirs: ["."],
+}
+
+cc_library_static {
+    name: "liba3tee_qsee_transport",
+    defaults: ["a3tee_defaults"],
+    vendor: true,
+    srcs: ["QseeTransport.cpp"],
+    shared_libs: ["libbase", "liblog", "libdl"],
+    static_libs: ["liba3tee_backend"],
+}
+
+cc_binary {
+    name: "vendor.a3tee.keymaster@3.0-service",
+    init_rc: ["keymaster.rc"],
+    vintf_fragments: ["keymaster.xml"],
+    defaults: ["a3tee_defaults"],
+    vendor: true,
+    relative_install_path: "hw",
+    srcs: ["KeymasterService.cpp", "Csg3Context.cpp"],
+    static_libs: ["liba3tee_backend", "liba3tee_qsee_transport", "liba3tee_native_legacy"],
+    shared_libs: [
+        "android.hardware.keymaster@3.0", "libkeymaster3device", "libkeymaster_portable", "libpuresoftkeymasterdevice", "libsoft_attestation_cert",
+        "libbase", "libdl", "liblog", "libhidlbase", "libutils",
+    ],
+}
+
+cc_binary {
+    name: "vendor.a3tee.gatekeeper@1.0-service",
+    init_rc: ["gatekeeper.rc"],
+    vintf_fragments: ["gatekeeper.xml"],
+    defaults: ["a3tee_defaults"],
+    vendor: true,
+    relative_install_path: "hw",
+    srcs: ["GatekeeperService.cpp"],
+    static_libs: ["liba3tee_backend", "liba3tee_qsee_transport"],
+    shared_libs: [
+        "android.hardware.gatekeeper@1.0", "libbase", "libdl", "liblog", "libhidlbase", "libutils",
+    ],
+}
+
+// These exercise an in-memory transport only. Neither test opens /dev/qseecom.
+cc_test_host {
+    name: "a3tee_protocol_test",
+    defaults: ["a3tee_defaults"],
+    srcs: ["tests/ProtocolTest.cpp"],
+    static_libs: ["liba3tee_backend"],
+}
+cc_test {
+    name: "a3tee_protocol_test_device",
+    defaults: ["a3tee_defaults"],
+    vendor: true,
+    srcs: ["tests/ProtocolTest.cpp"],
+    static_libs: ["liba3tee_backend"],
+}
+
+// Load/unload-only qualification: no HAL registration or TA commands.
+cc_binary {
+    name: "a3tee_qsee_probe",
+    defaults: ["a3tee_defaults"],
+    vendor: true,
+    srcs: ["tests/QseeProbe.cpp"],
+    local_include_dirs: ["."],
+    shared_libs: ["libdl"],
+}
+
+// Explicit live qualification only. Uses temporary keys and UID 999997;
+// never registers a service or touches the Android user's credential.
+cc_test {
+    name: "a3tee_hardware_test",
+    defaults: ["a3tee_defaults"],
+    vendor: true,
+    srcs: ["tests/HardwareTest.cpp"],
+    static_libs: ["liba3tee_backend", "liba3tee_qsee_transport"],
+    shared_libs: ["libbase", "libdl", "liblog"],
+}
+
+cc_test {
+    name: "a3tee_context_test",
+    defaults: ["a3tee_defaults"],
+    vendor: true,
+    srcs: ["Csg3Context.cpp", "tests/ContextTest.cpp"],
+    static_libs: ["liba3tee_backend"],
+    shared_libs: ["libkeymaster3device", "libkeymaster_portable", "libpuresoftkeymasterdevice", "libsoft_attestation_cert", "liblog"],
+}
+
+// Explicit legacy HAL qualification against the native TA; never a product service.
+cc_test {
+    name: "a3tee_legacy_test",
+    defaults: ["a3tee_defaults"],
+    vendor: true,
+    srcs: ["tests/LegacyTest.cpp"],
+    local_include_dirs: ["legacy"],
+    static_libs: ["liba3tee_native_legacy"],
+    shared_libs: ["libdl", "libbase", "liblog", "libkeymaster_portable", "libpuresoftkeymasterdevice", "libsoft_attestation_cert", "libkeymaster3device", "android.hardware.keymaster@3.0", "libhidlbase", "libutils"],
+}
+
+cc_library_static {
+    name: "liba3tee_native_legacy",
+    defaults: ["a3tee_defaults"],
+    vendor: true,
+    srcs: ["NativeLegacy.cpp", "legacy/keymaster/legacy_support/keymaster0_engine.cpp",
+           "legacy/keymaster/legacy_support/rsa_keymaster0_key.cpp"],
+    local_include_dirs: ["legacy"],
+    export_include_dirs: ["legacy"],
+    shared_libs: ["libdl", "libbase", "liblog", "libkeymaster_portable", "libpuresoftkeymasterdevice", "libsoft_attestation_cert"],
+}
+
+// Live qualification without a device reboot; not installed by the product.
+cc_binary {
+    name: "a3tee_launch_test_service",
+    vendor: true,
+    srcs: ["tests/LaunchNative.cpp"],
+    shared_libs: ["libselinux"],
+    cflags: ["-Wall", "-Wextra", "-Werror"],
+}

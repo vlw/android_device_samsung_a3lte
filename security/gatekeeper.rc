@@ -1,0 +1,9 @@
+service vendor.a3tee.gatekeeper /vendor/bin/hw/vendor.a3tee.gatekeeper@1.0-service
+    interface android.hardware.gatekeeper@1.0::IGatekeeper default
+    disabled
+    class hal
+    user system
+    group system drmrpc
+
+on property:ro.vendor.a3tee.enabled=1
+    start vendor.a3tee.gatekeeper

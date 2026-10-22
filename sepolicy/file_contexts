@@ -20,5 +20,11 @@
 
 /(vendor|system/vendor)/bin/hw/android\.hardware\.vibrator-service\.a3lte    u:object_r:hal_vibrator_default_exec:s0
 
+/(vendor|system/vendor)/bin/hw/vendor\.a3tee\.keymaster@3\.0-service u:object_r:hal_keymaster_default_exec:s0
+/(vendor|system/vendor)/bin/hw/vendor\.a3tee\.gatekeeper@1\.0-service u:object_r:hal_gatekeeper_default_exec:s0
+
+# Signed CSG3 TAs read by the QSEE adapter and firmware loader.
+/(vendor|system/vendor)/firmware/(keymaster|cmnlib)\.(mdt|b0[0-3]) u:object_r:firmware_file:s0
+
 # CM36652 reads this factory cancellation value from its sysfs callbacks.
 /efs/prox_cal                                      u:object_r:sensor_efs_file:s0

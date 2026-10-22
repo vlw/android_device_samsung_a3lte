@@ -1,0 +1,5 @@
+# Read the active firmware_class override before allowing hardware security.
+type sysfs_a3tee_firmware, fs_type, sysfs_type;
+allow { hal_keymaster_default hal_gatekeeper_default } sysfs_a3tee_firmware:file r_file_perms;
+
+# Native firmware selection is read-only; no init override is installed.

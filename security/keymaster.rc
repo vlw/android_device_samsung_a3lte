@@ -1,0 +1,9 @@
+service vendor.a3tee.keymaster /vendor/bin/hw/vendor.a3tee.keymaster@3.0-service
+    interface android.hardware.keymaster@3.0::IKeymasterDevice default
+    disabled
+    class early_hal
+    user system
+    group system drmrpc
+
+on property:ro.vendor.a3tee.enabled=1
+    start vendor.a3tee.keymaster
