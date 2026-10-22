@@ -10,7 +10,10 @@ import kotlin.concurrent.thread
 
 object SipDownlinkPcmPlayout {
     private const val DOWNLINK_UNDERRUN_CONCEALMENT_FRAMES = 6
-    private const val DOWNLINK_TARGET_BUFFERED_MS = 60L
+    // Audio held in the AudioTrack ahead of the mixer. On the low-latency VoIP
+    // output (4 ms HAL periods) 40 ms measured ~100 ms write-to-earpiece with no
+    // underruns; 60 ms was sized for the 40 ms pulls of the deep-buffer output.
+    private const val DOWNLINK_TARGET_BUFFERED_MS = 40L
     private const val DOWNLINK_MAX_QUEUED_FRAMES = 4 // 80 ms
     private const val DOWNLINK_POLL_MS = 5L
     private const val DOWNLINK_HEAD_STALL_MS = 200L
