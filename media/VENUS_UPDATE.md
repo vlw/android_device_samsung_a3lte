@@ -123,3 +123,29 @@ core path and put its isolated directory first in LD_LIBRARY_PATH. The probe
 never installs libraries. Failed probe attempts are not codec regressions;
 the initial probe was corrected to handle OMX output-port reconfiguration
 before the recorded comparisons above.
+
+
+## Model-specific secure firmware selection (2026-10-22)
+
+The original runtime qualification above was on SM-A300FU. It cannot qualify
+that signed image on SM-A300F or SM-A300H. On the connected SM-A300F with
+A300FXXS1BRH1 bootloader, the unconditional FU override caused SCM
+`0x2000201` to return `-2` at `init_image`, followed by `Invalid firmware
+metadata`. Direct creation of OMX.qcom.video.decoder.avc failed; the media
+service also cached a codec list with the hardware components omitted.
+
+Selecting the phone's `/firmware/image` instead loaded
+`VIDEO.VE.1.8-00130`; an AVC Surface decode returned all 60 frames. Restarting
+only `media` refreshed the cached list and restored the Qualcomm components.
+No firmware partition, TrustZone image, bootloader or kernel was flashed.
+The failure therefore does not justify bypassing SCM authentication or
+changing Venus clocks/reservations.
+
+The post-fs default now selects `/firmware/image` for F/H and unknown variants.
+Only an exact `ro.product.model=SM-A300FU` trigger selects the qualified vendor
+00155 directory. libinit sets the model before post-fs. The FU path and its
+vendor cmnlib symlinks are retained for the separately prepared TEE adapter.
+The H fallback is conservative; runtime qualification on H is still required.
+Installing this init rule prevents the wrong selection at the next boot;
+restarting a media service is only needed to repair a cache populated during
+an already failed boot. There is no unconditional media-service restart in init.
