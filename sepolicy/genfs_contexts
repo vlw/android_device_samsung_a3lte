@@ -1,1 +1,0 @@
-genfscon sysfs /module/firmware_class/parameters/path u:object_r:sysfs_a3tee_firmware:s0

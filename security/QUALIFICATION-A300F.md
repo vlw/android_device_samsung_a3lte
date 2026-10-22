@@ -48,8 +48,9 @@ Only native RSA-2048/exponent 65537 generation/signing is qualified. Key import,
 other sizes, hardware symmetric algorithms, hardware Gatekeeper, auth-bound keys,
 FBE and full encryption security are not qualified. The Android API version is
 3.0; secure-world functionality remains KM0 with software authorization policy.
-Keep A3LTE_TEE_SECURITY=true in builds intended to retain access to newly created
-hardware keys. Reverting to software-only HAL cannot use those opaque RSA blobs.
+Hardware security is always built in now; the service falls back to software
+only when the TA fails its self-test. That software fallback, like reverting to
+a software-only HAL, cannot use opaque TEE RSA blobs created earlier.
 
 The AOSP KM0 engine and factory were adapted in device/, not system/. The prior
 CSG3 backend remains separate and fails its firmware guard on this F/BRH1 target.

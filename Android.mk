@@ -36,15 +36,13 @@ recovery_fstab := $(TARGET_RECOVERY_FSTAB)
 OTA_FROM_TARGET_FILES := $(HOST_OUT_EXECUTABLES)/a3_ota_from_target_files$(HOST_EXECUTABLE_SUFFIX)
 
 # QSEE names this TA keymaster; Samsung FAT firmware uses keymaste.*.
-# Only the opt-in adapter needs these read-only aliases to the native partition.
-ifeq ($(A3LTE_TEE_SECURITY),true)
+# Read-only aliases to whatever the device's native partition carries.
 A3LTE_KM_NAMES := keymaster.b00 keymaster.b01 keymaster.b02 keymaster.b03 keymaster.mdt
 A3LTE_KM_LINKS := $(addprefix $(TARGET_OUT_ETC)/firmware/,$(A3LTE_KM_NAMES))
 $(A3LTE_KM_LINKS):
 	@mkdir -p $(dir $@)
 	$(hide) ln -sfn /firmware/image/$(subst keymaster,keymaste,$(notdir $@)) $@
 ALL_DEFAULT_INSTALLED_MODULES += $(A3LTE_KM_LINKS)
-endif
 
 include $(call all-subdir-makefiles,$(LOCAL_PATH))
 

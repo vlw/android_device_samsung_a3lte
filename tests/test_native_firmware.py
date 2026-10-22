@@ -74,20 +74,25 @@ class NativeFirmwareTest(unittest.TestCase):
             self.assertEqual(len(links), 5)
             self.assertTrue(all(target == "/firmware/image/" + name for name, target in links.items()))
 
-    def test_optional_keymaster_aliases_are_native(self):
+    def test_keymaster_aliases_are_native(self):
         text = (DEVICE / "Android.mk").read_text()
-        if "A3LTE_KM_NAMES" not in text:
-            self.skipTest("The optional TEE adapter is not present in this checkout")
-        start = text.index("ifeq ($(A3LTE_TEE_SECURITY),true)")
-        block = text[start:text.index("\nendif", start) + len("\nendif")]
-        self.assertEqual(run_rules(block, ["A3LTE_TEE_SECURITY=false"]), {})
-        links = run_rules(block, ["A3LTE_TEE_SECURITY=true"])
+        start = text.index("A3LTE_KM_NAMES :=")
+        end = text.index("ALL_DEFAULT_INSTALLED_MODULES += $(A3LTE_KM_LINKS)", start)
+        block = text[start:text.index("\n", end)]
+        links = run_rules(block, [])
         self.assertEqual(len(links), 5)
         for name, target in links.items():
             self.assertEqual(target, "/firmware/image/" + name.replace("keymaster", "keymaste"))
         transport = (DEVICE / "security/QseeTransport.cpp").read_text()
         self.assertNotIn('"/vendor/firmware', transport)
-        self.assertNotIn("A300FUXXU1BOF7", transport)
+
+    def test_security_has_no_firmware_version_pins(self):
+        security = DEVICE / "security"
+        self.assertFalse(list(security.glob("*FirmwareHashes.inc")))
+        for source in security.glob("*.cpp"):
+            text = source.read_text()
+            self.assertNotIn("ro.bootloader", text, source.name)
+            self.assertNotIn("SHA256(", text, source.name)
 
     def test_common_vendor_respects_native_policy(self):
         with tempfile.TemporaryDirectory(prefix="a3-common-vendor-") as tmp:
@@ -120,7 +125,7 @@ class NativeFirmwareTest(unittest.TestCase):
             self.assertNotRegex(entry, r"/firmware/(?:venus[./]|cmnlib\.|keymaster\.)")
             self.assertNotIn("init.a3lte.venus.rc", entry)
         if args.packages:
-            self.assertFalse(any("a3tee." in p for p in args.packages.read_text().split()))
+            self.assertIn("vendor.a3tee.keymaster@3.0-service", args.packages.read_text().split())
 
 
 if __name__ == "__main__":

@@ -2,14 +2,8 @@
 // Copyright (C) 2026 The LineageOS Project
 #define LOG_TAG "a3tee"
 #include "Transport.h"
-#include <android-base/properties.h>
-#include <android-base/file.h>
-#include <android-base/strings.h>
 #include <dlfcn.h>
 #include <log/log.h>
-#include <openssl/sha.h>
-#include <array>
-#include <cstdio>
 #include <cstring>
 #include <memory>
 #include <mutex>
@@ -17,47 +11,6 @@
 namespace a3tee {
 namespace {
 struct QseeHandle { uint8_t* shared; };
-struct FirmwareHash { const char* file; const char* hash; };
-constexpr FirmwareHash kFirmware[] = {
-#include "FirmwareHashes.inc"
-};
-bool checkFirmware() {
-    // These boot chains have passed CSG3 TA load qualification. This property
-    // is a compatibility allowlist, not authentication of secure world.
-    const auto bootloader = android::base::GetProperty("ro.bootloader", "");
-    if (bootloader != "A300FUXXU1CSG3") {
-        ALOGE("Unqualified A300FU boot chain");
-        return false;
-    }
-    std::string firmwarePath;
-    if (!android::base::ReadFileToString("/sys/module/firmware_class/parameters/path", &firmwarePath) ||
-        (!android::base::Trim(firmwarePath).empty() &&
-         android::base::Trim(firmwarePath) != "/firmware/image")) {
-        ALOGE("Non-native global firmware override is active");
-        return false;
-    }
-    for (const auto& expected : kFirmware) {
-        // The common library and TA must both belong to the native partition.
-        // Keymaster aliases only expand Samsung's FAT basename, not its content.
-        const char* directory = strncmp(expected.file, "cmnlib.", 7) == 0
-                                    ? "/firmware/image/" : "/system/etc/firmware/";
-        std::string path = std::string(directory) + expected.file;
-        std::unique_ptr<FILE, decltype(&fclose)> f(fopen(path.c_str(), "rbe"), fclose);
-        if (!f) { ALOGE("Missing CSG3 firmware component %s", expected.file); return false; }
-        SHA256_CTX ctx;
-        SHA256_Init(&ctx);
-        std::array<uint8_t, 4096> block;
-        size_t n;
-        while ((n = fread(block.data(), 1, block.size(), f.get())) != 0) SHA256_Update(&ctx, block.data(), n);
-        if (ferror(f.get())) return false;
-        uint8_t digest[SHA256_DIGEST_LENGTH];
-        SHA256_Final(digest, &ctx);
-        char hex[SHA256_DIGEST_LENGTH*2+1];
-        for (size_t i = 0; i < sizeof(digest); ++i) snprintf(hex+2*i, 3, "%02x", digest[i]);
-        if (strcmp(hex, expected.hash)) { ALOGE("Unqualified firmware %s", expected.file); return false; }
-    }
-    return true;
-}
 class QseeTransport final : public Transport {
   public:
     ~QseeTransport() override {
@@ -65,7 +18,6 @@ class QseeTransport final : public Transport {
         if (library_) dlclose(library_);
     }
     bool open() {
-        if (!checkFirmware()) return false;
         library_ = dlopen("libQSEEComAPI.so", RTLD_NOW | RTLD_LOCAL);
         if (!library_) { ALOGE("QSEE API unavailable: %s", dlerror()); return false; }
         start_ = reinterpret_cast<decltype(start_)>(dlsym(library_, "QSEECom_start_app"));
@@ -78,12 +30,14 @@ class QseeTransport final : public Transport {
         std::vector<uint8_t> response;
         if (!transact(version, &response)) return false;
         Reply reply(response);
-        // CSG3 dispatcher at 0x44a6 returns API 1.0 / TA 1.9. A different
-        // version needs its own protocol qualification, never blind dispatch.
-        if (reply.status() != KM_ERROR_OK || !reply.range(0, 20) || reply.word(4) != 1 ||
-            reply.word(8) != 0 || reply.word(12) != 1 || reply.word(16) != 9) {
-            ALOGE("Unqualified Keymaster TA version"); return false;
+        // Accept any TA that answers this Keymaster 1 protocol query; the TA's
+        // own build version is only logged. Whether its commands actually work
+        // is decided by the caller's functional self-test, not by a version.
+        if (reply.status() != KM_ERROR_OK || !reply.range(0, 20) || reply.word(4) != 1) {
+            ALOGI("TA does not speak the Keymaster 1 protocol"); return false;
         }
+        ALOGI("Keymaster 1 TA: API %u.%u, TA %u.%u", reply.word(4), reply.word(8),
+              reply.word(12), reply.word(16));
         Message client(24, 0x207);
         client.put(4, 0x100); // HAL 1.0
         client.put(8, 1); client.put(12, 1); client.put(16, 1); client.put(20, 1);

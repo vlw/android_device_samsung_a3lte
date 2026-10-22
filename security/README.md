@@ -1,15 +1,32 @@
-# Native A300F Keymaster HAL
+# Native A3 Keymaster HAL
 
-The current test device is SM-A300F, bootloader A300FXXS1BRH1. Only its native
-`/firmware/image/keymaste.*` and `cmnlib.*` are used. Nothing writes firmware,
-TrustZone, bootloader, modem, RPMB provisioning, or userdata encryption settings.
-The firmware_class override must be empty. Hashes in NativeFirmwareHashes.inc
-pin the ten native components; this is a compatibility guard, not authentication.
+Only the device's native `/firmware/image/keymaste.*` and `cmnlib.*` are used.
+Nothing writes firmware, TrustZone, bootloader, modem, RPMB provisioning, or
+userdata encryption settings.
+
+## Backend selection
+
+No bootloader string, firmware build or file hash is checked. At start the
+service tries, in order:
+
+1. The native Keymaster 0.3 module (`/vendor/lib/keystore.qcom.so`). It must
+   report a hardware (not software-only) KM0 API, then pass a self-test: a
+   fixed public test key (`SelfTestKey.inc`) is imported into a temporary
+   blob, signed raw in the TA and verified with its public part. Generation is
+   used only if the TA rejects import.
+2. A Keymaster 1 TA over QSEE. Any TA answering the KM1 version query is
+   probed; it must list AES/HMAC/RSA/EC and a temporary HMAC key must sign,
+   verify and reject a damaged MAC. The reported TA version is only logged.
+3. The software Keymaster 3 (`PureSoftKeymasterContext`), so keystore keeps
+   working on any variant or firmware without a usable TA. Software key blobs
+   stay readable; TEE-bound RSA blobs cannot be used while no TA works.
+
+The selected backend is logged as `a3tee-keymaster: Using ...`.
 
 ## What is implemented
 
-The BRH1 Keymaster executable is byte-identical to the old FU/BOF7 KM0 TA,
-not the CSG3 KM1 TA. Its Android API is legacy Keymaster 0.3. Sending KM1/Gatekeeper
+On the SM-A300F test device (bootloader A300FXXS1BRH1) the Keymaster TA is
+byte-identical to the old FU/BOF7 KM0 TA, not the CSG3 KM1 TA. Its Android API is legacy Keymaster 0.3. Sending KM1/Gatekeeper
 commands to this TA is not supported. The new HIDL 3.0 service wraps native KM0
 RSA through AOSP's Keymaster0Engine and an adapted RSA factory. Keystore2's
 existing km_compat supplies the Android12 KeyMint-facing interface.
@@ -30,13 +47,13 @@ Hardware attestation, rollback resistance, hardware symmetric keys, secure user
 authentication and FBE qualification are not provided by this port. A newer Android
 interface does not upgrade the secure application's protocol or capabilities.
 
-The old KM1/CSG3 backend remains separately guarded and is not used on BRH1.
-Historical FU experiments in HISTORY-CSG3.md are not evidence of F compatibility.
+On the A300F test device the KM1 probe is never reached: the native KM0 module
+passes first. Historical FU experiments in HISTORY-CSG3.md describe the KM1 TA.
 
 ## Building
 
-Enable explicitly with `A3LTE_TEE_SECURITY=true`. This selects the new HIDL3
-service instead of the software KM4.1 product service. Do not advertise both:
+The product always selects this HIDL3 service instead of the software KM4.1
+product service; it decides at runtime whether hardware is used. Do not advertise both:
 Android12 otherwise includes the software KM4.1 default in shared-secret
 negotiation and retries its unimplemented HMAC-sharing call indefinitely.
 Software algorithm support remains available through the existing compatibility
@@ -44,12 +61,12 @@ library. Gatekeeper stays software unless separately explicitly selected with
 `A3LTE_TEE_GATEKEEPER=true`; that mode is not qualified for A300F.
 
 ```
-A3LTE_TEE_SECURITY=true m vendor.a3tee.keymaster@3.0-service selinux_policy
+m vendor.a3tee.keymaster@3.0-service selinux_policy
 m a3tee_legacy_test a3tee_protocol_test a3tee_context_test
 ```
 
-The feature is opt-in to avoid breaking other A3 variants whose native TA has not
-been qualified. Firmware aliases in Android.mk point only to the native partition.
+Variants whose TA fails the self-test keep a software keystore instead of a
+broken one. Firmware aliases in Android.mk point only to the native partition.
 No signed firmware files are bundled or overridden by this feature.
 
 ## Sources

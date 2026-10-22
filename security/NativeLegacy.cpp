@@ -1,39 +1,21 @@
 // SPDX-License-Identifier: Apache-2.0
 #define LOG_TAG "a3tee-native"
 #include "NativeLegacy.h"
-#include <android-base/file.h>
-#include <android-base/properties.h>
-#include <android-base/strings.h>
 #include <keymaster/legacy_support/rsa_keymaster0_key.h>
 #include <keymaster/key_blob_utils/integrity_assured_key_blob.h>
 #include <keymaster/key_blob_utils/software_keyblobs.h>
 #include <log/log.h>
-#include <openssl/sha.h>
+#include <openssl/evp.h>
+#include <openssl/mem.h>
+#include <openssl/rsa.h>
 #include <openssl/x509.h>
 #include <dlfcn.h>
+#include <chrono>
+#include <cstdlib>
 #include <cstring>
 
 namespace a3tee {
 namespace {
-struct Hash { const char* name; const char* sha256; };
-constexpr Hash kNative[] = {
-#include "NativeFirmwareHashes.inc"
-};
-bool qualified() {
-    if (android::base::GetProperty("ro.bootloader", "") != "A300FXXS1BRH1") return false;
-    std::string override;
-    if (!android::base::ReadFileToString("/sys/module/firmware_class/parameters/path", &override) ||
-        !android::base::Trim(override).empty()) return false;
-    for (auto& expected : kNative) {
-        std::string data;
-        if (!android::base::ReadFileToString(std::string("/firmware/image/") + expected.name, &data)) return false;
-        uint8_t hash[32]; SHA256(reinterpret_cast<const uint8_t*>(data.data()), data.size(), hash);
-        char hex[65];
-        for (size_t i=0; i<32; ++i) snprintf(hex+2*i, 3, "%02x", hash[i]);
-        if (strcmp(hex, expected.sha256)) return false;
-    }
-    return true;
-}
 // The old Samsung binary writes RSA struct fields using its Android 5 OpenSSL
 // ABI. That cannot construct a public key with Android 12 BoringSSL. Read only
 // the public components from the fixed Qualcomm KM0 blob and use current APIs.
@@ -59,9 +41,58 @@ int publicKey(const keymaster0_device_t*, const uint8_t* blob, size_t length,
     if (i2d_PUBKEY(key.get(),&ptr)!=size) { free(bytes); return -1; }
     *output=bytes; *outputLength=size; return 0;
 }
+constexpr uint8_t kSelfTestKey[] = {
+#include "SelfTestKey.inc"
+};
+// Proves the module drives a working secure-world RSA implementation instead of
+// trusting a firmware or bootloader version: a raw private operation in the TA
+// must invert under the public key. Import of a fixed key is fast; generation
+// (several seconds in a KM0 TA) is only the fallback when a TA rejects import.
+bool selfTest(keymaster0_device_t* device) {
+    const auto start = std::chrono::steady_clock::now();
+    uint8_t *key = nullptr, *pub = nullptr, *signature = nullptr;
+    size_t keySize = 0, pubSize = 0, signatureSize = 0;
+    bool imported =
+        device->import_keypair(device, kSelfTestKey, sizeof(kSelfTestKey), &key, &keySize) == 0 && key;
+    if (!imported) {
+        keymaster_rsa_keygen_params_t params{2048, 65537};
+        if (device->generate_keypair(device, TYPE_RSA, &params, &key, &keySize) || !key) {
+            ALOGE("Native Keymaster self-test: no RSA key could be created");
+            return false;
+        }
+    }
+    bool ok = false;
+    if (device->get_keypair_public(device, key, keySize, &pub, &pubSize) == 0 && pub) {
+        const uint8_t* ptr = pub;
+        bssl::UniquePtr<EVP_PKEY> pk(d2i_PUBKEY(nullptr, &ptr, pubSize));
+        bssl::UniquePtr<RSA> rsa(pk ? EVP_PKEY_get1_RSA(pk.get()) : nullptr);
+        if (imported && rsa) {
+            const uint8_t* expected = kSelfTestKey;
+            bssl::UniquePtr<EVP_PKEY> reference(d2i_AutoPrivateKey(nullptr, &expected, sizeof(kSelfTestKey)));
+            bssl::UniquePtr<RSA> ref(reference ? EVP_PKEY_get1_RSA(reference.get()) : nullptr);
+            if (!ref || BN_cmp(RSA_get0_n(ref.get()), RSA_get0_n(rsa.get())) != 0) rsa.reset();
+        }
+        uint8_t input[256]{};
+        input[1] = 0x5a; input[255] = 0x42; // below the modulus for any 2048-bit key
+        keymaster_rsa_sign_params_t sign{DIGEST_NONE, PADDING_NONE};
+        uint8_t recovered[256];
+        ok = rsa && RSA_size(rsa.get()) == sizeof(input) &&
+            device->sign_data(device, &sign, key, keySize, input, sizeof(input), &signature, &signatureSize) == 0 &&
+            signatureSize == sizeof(input) &&
+            RSA_public_decrypt(signatureSize, signature, recovered, rsa.get(), RSA_NO_PADDING) == int(sizeof(input)) &&
+            memcmp(input, recovered, sizeof(input)) == 0;
+    }
+    if (device->delete_keypair) device->delete_keypair(device, key, keySize);
+    OPENSSL_cleanse(key, keySize);
+    free(key); free(pub); free(signature);
+    const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - start).count();
+    ALOGI("Native Keymaster self-test %s (%s key, %lld ms)", ok ? "passed" : "failed",
+          imported ? "imported" : "generated", static_cast<long long>(ms));
+    return ok;
+}
 } // namespace
 keymaster0_device_t* openNativeLegacy() {
-    if (!qualified()) { ALOGE("Native A300F firmware qualification failed"); return nullptr; }
     // NODELETE keeps the module's method table alive until the engine closes.
     void* library=dlopen("/vendor/lib/keystore.qcom.so",RTLD_NOW|RTLD_LOCAL|RTLD_NODELETE);
     if (!library) { ALOGE("Native module load: %s",dlerror()); return nullptr; }
@@ -78,6 +109,7 @@ keymaster0_device_t* openNativeLegacy() {
         return nullptr;
     }
     device->get_keypair_public=publicKey;
+    if (!selfTest(device)) { keymaster0_close(device); return nullptr; }
     return device;
 }
 NativeLegacyContext::NativeLegacyContext(keymaster0_device_t* device)
