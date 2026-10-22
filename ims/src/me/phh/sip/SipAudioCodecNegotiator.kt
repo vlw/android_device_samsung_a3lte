@@ -5,10 +5,11 @@ import android.media.MediaCodec
 import android.telephony.Rlog
 
 object SipAudioCodecNegotiator {
-    private val widebandAvailable by lazy { isMediaCodecAvailableFor("PhhCodec",SipAudioCodecs.AMR_WB) }
+    /** Process-wide: the first MediaCodec use builds the codec list (~150 ms). */
+    val amrWbAvailable by lazy { isMediaCodecAvailableFor("PhhCodec",SipAudioCodecs.AMR_WB) }
     fun selectRenegotiation(attributes: List<String>, payloads: Set<Int>, logTag: String): NegotiatedAudioCodec {
         val sdp=listOf("m=audio 9 RTP/AVP ${payloads.joinToString(" ")}")+attributes.map { "a=$it" }
-        return selectIncomingSpeechCodecFromOffer(logTag,sdp,"dialog renegotiation",widebandAvailable)
+        return selectIncomingSpeechCodecFromOffer(logTag,sdp,"dialog renegotiation",amrWbAvailable)
     }
 
     fun isMediaCodecAvailableFor(

@@ -49,9 +49,8 @@ class SipHandler(
     }
 
 
-    private val amrWbMediaCodecAvailable: Boolean by lazy {
-        SipAudioCodecNegotiator.isMediaCodecAvailableFor(TAG, SipAudioCodecs.AMR_WB)
-    }
+    private val amrWbMediaCodecAvailable: Boolean
+        get() = SipAudioCodecNegotiator.amrWbAvailable
 
     private val imsUplinkGainQ8: Int by lazy {
         SipUplinkGain.configuredGainQ8()
@@ -713,6 +712,7 @@ fun setRequestCallback(method: SipMethod, cb: (SipRequest) -> Int) {
         if (imsReady) return
         Rlog.d(TAG, "IMS registration ready: $reason")
         imsReady = true
+        SipCodecWarmup.start()
         reconnectController.markConnected()
         imsReadyCallback?.invoke()
     }
