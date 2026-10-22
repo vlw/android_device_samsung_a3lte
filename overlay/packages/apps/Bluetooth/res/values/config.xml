@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AdapterState enables this service when Bluetooth reaches STATE_ON.
+         Do not cold-start it for incoming calls while AdapterService is absent.
+         HFP itself remains enabled by profile_supported_hs_hfp.
+    -->
+    <bool name="profile_supported_hfp_incallservice">false</bool>
+</resources>
