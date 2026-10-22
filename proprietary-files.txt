@@ -217,15 +217,6 @@ vendor/lib/libril-qcril-hook-oem.so
 vendor/lib/libsystem_health_mon.so
 vendor/lib/libxml.so
 
-# Signed Venus VIDEO.VE.1.8-00155 from SM-A300FU Android 6 NON-HLOS
-# Dedicated directory: selected by init.a3lte.venus.rc before codec services start.
-vendor/firmware/venus/venus.mdt
-vendor/firmware/venus/venus.b00
-vendor/firmware/venus/venus.b01
-vendor/firmware/venus/venus.b02
-vendor/firmware/venus/venus.b03
-vendor/firmware/venus/venus.b04
-
 # Thermal
 vendor/bin/thermal-engine|5d7e03971fdc7f2e16c84a72430734bcb7328e82
 vendor/lib/libthermalclient.so

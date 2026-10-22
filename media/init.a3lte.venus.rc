@@ -1,9 +1,0 @@
-# The signed FU Venus set is accepted by FU secure boot, not by A300F TZ.
-# F/H and unknown variants use their matching firmware partition instead.
-# Set the path before class-core QSEE clients start. FU retains the matched
-# vendor cmnlib links in the priority directory used by its TEE adapter.
-on post-fs
-    write /sys/module/firmware_class/parameters/path /firmware/image
-
-on post-fs && property:ro.product.model=SM-A300FU
-    write /sys/module/firmware_class/parameters/path /vendor/firmware/venus

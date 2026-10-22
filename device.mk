@@ -23,6 +23,9 @@ DEVICE_CAMERA_LIBS := vendor/samsung/a3lte/proprietary/vendor/lib
 # Keep the original Samsung radio behind the device IMS-state adaptor.
 DEVICE_RIL_LIBPATH := /vendor/lib/liba3ims_radio.so
 
+# Signed Venus stays on the device firmware partition for every A3 variant.
+DEVICE_USES_NATIVE_VENUS_FIRMWARE := true
+
 # Inherit from msm8916-common
 $(call inherit-product, device/samsung/msm8916-common/msm8916.mk)
 

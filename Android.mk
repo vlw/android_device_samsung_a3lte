@@ -17,6 +17,17 @@ LOCAL_PATH := $(call my-dir)
 
 ifeq ($(TARGET_DEVICE), a3lte)
 
+# A3_NATIVE_FIRMWARE_GUARD_BEGIN
+# Signed subsystem/TEE images must match the device firmware partitions.
+A3LTE_PARTITION_IMAGE_NAMES := venus.% cmnlib.% keymaster.% keymaste.% \
+    modem.% mba.mbn wcnss.% pronto.% adsp.%
+A3LTE_SIGNED_FIRMWARE_COPIES := $(strip $(foreach fwcopy,$(PRODUCT_COPY_FILES),\
+    $(if $(filter $(A3LTE_PARTITION_IMAGE_NAMES),$(notdir $(word 2,$(subst :, ,$(fwcopy))))),$(fwcopy))))
+ifneq ($(A3LTE_SIGNED_FIRMWARE_COPIES),)
+$(error a3lte must use native partition firmware, remove PRODUCT_COPY_FILES: $(A3LTE_SIGNED_FIRMWARE_COPIES))
+endif
+# A3_NATIVE_FIRMWARE_GUARD_END
+
 # AOSP non-A/B packaging requires and bundles recovery. Use the device-owned
 # generator that preserves TWRP and rejects recovery-bearing inputs instead.
 # core/Makefile otherwise disables non-A/B OTA entirely when recovery is off.
