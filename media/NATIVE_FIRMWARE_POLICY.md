@@ -41,7 +41,7 @@ product continues using its existing software security services.
 | Venus | Native `/firmware/image`; F runtime reports VIDEO.VE.1.8-00130 | No vendor image or priority override |
 | cmnlib / Keymaster | Native partition links; candidate TA files not packaged | No cross-build TEE injection |
 | Modem / MBA | Existing links to `/firmware-modem/image` | No donor modem installation or forced image |
-| WCNSS | Existing native partition links | No new signed WCNSS override; WLAN NV/config is separate from DSP firmware |
+| WCNSS | Existing native partition links | No signed DSP override. The separate WLAN NV stock-model difference is recorded below |
 | NFC sec_s3fwrn5 | Vendor file SHA256 equals the SM-A300F BRH1 stock system image, 119084 bytes | Retained; the old A320 provenance label did not imply different bytes |
 | GPU a300_pfp / a300_pm4 | Both vendor files equal SM-A300F BRH1 stock byte-for-byte | Retained; these are stock system firmware assets |
 | Camera CPP 1.1.1 / 1.1.6 / 1.4.0 | All equal SM-A300F BRH1 stock byte-for-byte | Retained |
@@ -54,6 +54,23 @@ product continues using its existing software security services.
 This audit checks the current product graph and load paths. It does not claim
 runtime hardware qualification of models that were not connected or prove
 that every userspace blob is optimal.
+
+## Separate inherited WLAN NV finding
+
+The common `WCNSS_qcom_wlan_nv.bin` is byte-identical to FU CSG3 stock,
+but differs from F BRH1 stock in 53 of 29816 bytes. It entered the common
+tree in 45d608d7a (2025-11-01, switching CAF data to SEC data), before the
+Venus update. The installed phone's NV hash matches the common source file.
+`WCNSS_cfg.dat` equals F stock; `WCNSS_qcom_cfg.ini` has several differences
+(scan period, HT40, PNO and coexistence options).
+
+These are host-side radio/configuration data, not the signed WCNSS DSP image
+and not a firmware_class path override. The 53-byte difference is not yet
+proof of a functional defect or proof that one model's values can safely
+replace another's. Field semantics and model-specific selection need separate
+analysis. This cleanup did not replace the NV/INI or restart Wi-Fi, and does
+not claim stock-equivalent WLAN calibration across F/FU/H. Exact hashes and
+differences are recorded in `wlan-stock-comparison.json` beside the audit logs.
 
 ## Regression protection
 
